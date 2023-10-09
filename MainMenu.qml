@@ -6,6 +6,8 @@ Rectangle {
     color: "#2f2f2f"
 
     Row {
+        anchors.centerIn: parent
+
         Rectangle {
             id: load_song_button
 

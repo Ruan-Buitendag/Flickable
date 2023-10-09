@@ -56,5 +56,5 @@ Rectangle {
         }
     }
 
-    BackButton {}
+    //    BackButton {}
 }

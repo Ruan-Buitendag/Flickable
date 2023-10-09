@@ -8,7 +8,8 @@ extern "C" {
 Transcription::Transcription(QObject *parent)
     : QObject{parent}
 {
-
+    m_songName = QUrl::fromLocalFile("C:/Users/ruanb/OneDrive/Desktop/Piano Transcripton/Piano transcription/MAPS/AkPnBcht/MUS/MAPS_MUS-alb_se3_AkPnBcht.wav");
+    m_transcriptionFile = QUrl::fromLocalFile("C:/Users/ruanb/OneDrive/Desktop/Piano Transcripton/Piano transcription/MAPS/AkPnBcht/MUS/MAPS_MUS-alb_se3_AkPnBcht.txt");
 }
 
 void Transcription::bals()
@@ -20,6 +21,8 @@ void Transcription::bals()
 
 void Transcription::startTranscription()
 {
+
+    qDebug() << m_audioDevice.description();
 
     std::string qSongName = m_songName.toLocalFile().toStdString();
     std::string qTranscriptionFile = m_transcriptionFile.toLocalFile().toStdString();
@@ -80,4 +83,15 @@ void Transcription::setTranscriptionFile(const QUrl &transcriptionFile)
     m_transcriptionFile = transcriptionFile;
 
     emit transcriptionFileChanged(m_transcriptionFile);
+}
+
+QAudioDevice Transcription::audioDevice() const
+{
+    return m_audioDevice;
+}
+
+void Transcription::setAudioDevice(const QAudioDevice &audioDevice)
+{
+    m_audioDevice = audioDevice;
+    emit audioDeviceChanged(m_audioDevice);
 }

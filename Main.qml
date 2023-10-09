@@ -21,7 +21,6 @@ Window {
             //            console.log("StackChanged: ", stackview.children)
         }
     }
-
     Transcription {
         id: transcription
 

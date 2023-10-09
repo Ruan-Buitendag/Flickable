@@ -8,6 +8,8 @@ import QtCore
 Rectangle {
     anchors.fill: parent
 
+    color: "#2f2f2f"
+
     Text {
         anchors.centerIn: parent
         text: "Song loading"
@@ -34,51 +36,55 @@ Rectangle {
         }
     }
 
-    Rectangle {
+    Row {
+        anchors.centerIn: parent
 
-        width: 100
-        height: 100
+        Rectangle {
 
-        color: "red"
+            width: 100
+            height: 100
 
-        //        anchors.centerIn: parent
-        MouseArea {
-            anchors.fill: parent
+            color: "red"
 
-            onClicked: transcriptionFileDialog.open()
+            //        anchors.centerIn: parent
+            MouseArea {
+                anchors.fill: parent
+
+                onClicked: transcriptionFileDialog.open()
+            }
         }
-    }
 
-    Rectangle {
-        x: 400
+        Rectangle {
+            x: 400
 
-        width: 100
-        height: 100
+            width: 100
+            height: 100
 
-        color: "orange"
+            color: "orange"
 
-        //        anchors.centerIn: parent
-        MouseArea {
-            anchors.fill: parent
+            //        anchors.centerIn: parent
+            MouseArea {
+                anchors.fill: parent
 
-            onClicked: wavFileDialog.open()
+                onClicked: wavFileDialog.open()
+            }
         }
-    }
 
-    Rectangle {
-        x: 500
+        Rectangle {
+            x: 500
 
-        width: 100
-        height: 100
+            width: 100
+            height: 100
 
-        color: "green"
+            color: "green"
 
-        //        anchors.centerIn: parent
-        MouseArea {
-            anchors.fill: parent
+            //        anchors.centerIn: parent
+            MouseArea {
+                anchors.fill: parent
 
-            onClicked: {
-                doTranscription()
+                onClicked: {
+                    doTranscription()
+                }
             }
         }
     }

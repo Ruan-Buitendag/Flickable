@@ -8,7 +8,7 @@ set(CMAKE_CXX_FLAGS "-Wall -ffast-math -fopenmp")
 set(CMAKE_C_FLAGS "-Wall -ffast-math -fopenmp")
 
 
-find_package(Qt6 6.4 REQUIRED COMPONENTS Quick Concurrent)
+find_package(Qt6 6.4 REQUIRED COMPONENTS Quick Concurrent Multimedia)
 
 qt_standard_project_setup()
 
@@ -30,6 +30,8 @@ QML_FILES RecordingScreen.qml
 QML_FILES BackButton.qml
 QML_FILES DebugBox.qml
 QML_FILES
+RESOURCES images/buttons/back/white.png images/buttons/go/white.png images/line.png
+QML_FILES AudioDeviceSelector.qml
 
 )
 
@@ -53,7 +55,7 @@ include_directories(${HDF5_INCLUDE_DIRS} code/headers)
 
 
 target_link_libraries(appFlickable
-    PRIVATE Qt6::Quick ${HDF5_LIBRARIES} PUBLIC OpenMP::OpenMP_CXX Qt6::Concurrent
+    PRIVATE Qt6::Quick ${HDF5_LIBRARIES} PUBLIC OpenMP::OpenMP_CXX Qt6::Concurrent Qt6::Multimedia
 )
 
 
