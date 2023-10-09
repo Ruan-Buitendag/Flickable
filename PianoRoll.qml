@@ -195,4 +195,6 @@ Rectangle {
             nav_bar.x = -nav_bar.width
         }
     }
+
+    Component.onCompleted: anchors.fill = undefined
 }

@@ -22,39 +22,27 @@ Rectangle {
 
     Component.onCompleted: {
         anchors.fill = undefined
-
-        //        transcription.startTranscription()
-        //        stackview.push(pianoroll)
     }
 
-    DebugBox {
-
+    Column {
         anchors.centerIn: parent
 
-        Column {
+        Text {
+            text: "Waiting for transcription"
+            font.pixelSize: 20
+            color: "#ffffff"
 
-            DebugBox {
-                Text {
-                    text: "Waiting for transcription"
-                    font.pixelSize: 20
-                    color: "#ffffff"
+            anchors.horizontalCenter: parent.horizontalCenter
+        }
 
-                    anchors.horizontalCenter: parent.horizontalCenter
-                }
-            }
-            DebugBox {
-                BusyIndicator {
+        BusyIndicator {
 
-                    width: 50
-                    height: 50
+            width: 50
+            height: 50
 
-                    running: true
+            running: true
 
-                    anchors.horizontalCenter: parent.horizontalCenter
-                }
-            }
+            anchors.horizontalCenter: parent.horizontalCenter
         }
     }
-
-    //    BackButton {}
 }

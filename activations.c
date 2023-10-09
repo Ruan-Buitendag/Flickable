@@ -42,6 +42,10 @@ double BetaDivergence(const Matrix *x, const Matrix *y, double beta) {
 
 }
 
+double Gaussian(double x, double y){
+    double exponent = -(pow(x, 2)/(2) + pow(y, 2)/(2));
+    return exp(exponent);
+}
 
 Matrix ComputeActivations(const Spectrogram *X, unsigned int iterations, double beta, double maximum_error,
                           Dictionary *dictionary) {
@@ -54,11 +58,16 @@ Matrix ComputeActivations(const Spectrogram *X, unsigned int iterations, double 
 
     for (int ii = 0; ii < activations.rows; ii++) {
         for (int jj = 0; jj < activations.cols; jj++) {
-            activations.array[ii][jj] = (double) rand() / (double) RAND_MAX;
+//            activations.array[ii][jj] = (double) rand() / (double) RAND_MAX;
+            double x = (double)ii /activations.rows * 14 - 7;
+//            double x = 0;
+            double y = (double)jj/activations.cols * 14 - 7;
+//            double y = 0;
+            activations.array[ii][jj] = Gaussian(x, y);
         }
     }
 
-//    SaveMatrixToCSV("X.csv", &X->matrix);
+    SaveMatrixToCSV("Initialised H.csv", &activations);
 
     if (beta != 1) {
         fprintf(stderr, "ComputeActivations: beta != 1 not implemented yet\n");

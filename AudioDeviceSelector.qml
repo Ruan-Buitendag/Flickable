@@ -20,6 +20,12 @@ Item {
         delegate: audioDeviceDelegate
 
         highlightFollowsCurrentItem: false
+
+        Component.onCompleted: {
+            transcription.audioDevice = model[0]
+            currentIndex = 0
+            highlighter.y = listview.currentItem.y
+        }
     }
 
     function selectAudioDevice(modelData) {}
