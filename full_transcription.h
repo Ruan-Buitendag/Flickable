@@ -4,7 +4,7 @@
 
 #include "matrix.h"
 
-Matrix full_transcription();
+Matrix full_transcription(const char* songFile, const char* transcriptionFile);
 
 void test();
 

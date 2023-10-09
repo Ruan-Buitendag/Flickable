@@ -23,19 +23,16 @@ double BetaDivergence(const Matrix *x, const Matrix *y, double beta) {
             if (x->array[i][j] < 1e-8) {
                 x->array[i][j] = 1e-8;
             }
-            if (beta == 1) {
-                d.array[i][j] = x->array[i][j] * log(x->array[i][j] / y->array[i][j]) - x->array[i][j] + y->array[i][j];
+
+            d.array[i][j] = x->array[i][j] * log(x->array[i][j] / y->array[i][j]) - x->array[i][j] + y->array[i][j];
 
 
-                if (isnan(d.array[i][j])) {
-                    printf("x: %f, y: %f\n", x->array[i][j], y->array[i][j]);
-                }
+//            if (isnan(d.array[i][j])) {
+//                printf("x: %f, y: %f\n", x->array[i][j], y->array[i][j]);
+//            }
 
-                sum += d.array[i][j];
+            sum += d.array[i][j];
 
-            } else {
-                fprintf(stderr, "BetaDivergence: beta != 1 not implemented yet\n");
-            }
         }
     }
 
@@ -62,11 +59,6 @@ Matrix ComputeActivations(const Spectrogram *X, unsigned int iterations, double 
     }
 
 //    SaveMatrixToCSV("X.csv", &X->matrix);
-
-//    FillMatrix(&activations, 1);
-
-
-    double gamma = 1;
 
     if (beta != 1) {
         fprintf(stderr, "ComputeActivations: beta != 1 not implemented yet\n");
@@ -145,6 +137,11 @@ Matrix ComputeActivations(const Spectrogram *X, unsigned int iterations, double 
 
 //        SaveMatrixToCSV("A.csv", &A);
 
+      // TODO: optimize the padding
+
+
+//#pragma omp parallel for
+        \
         for (int i = 0; i < A.rows; i++) {
             for (int j = 0; j < A.cols; j++) {
 
@@ -152,9 +149,6 @@ Matrix ComputeActivations(const Spectrogram *X, unsigned int iterations, double 
                     A.array[i][j] = 1e-8;
                 }
 
-//                A.array[i][j] = pow(A.array[i][j], (beta - 2));
-//                A.array[i][j] *= X->matrix.array[i][j];
-//
                 A.array[i][j] = X->matrix.array[i][j] * 1 / A.array[i][j];
 
             }
@@ -163,6 +157,8 @@ Matrix ComputeActivations(const Spectrogram *X, unsigned int iterations, double 
 //        SaveMatrixToCSV("X_hadamard_A.csv", &A);
 
         Matrix X_hadamard_A_padded = CreateMatrix(A.rows, A.cols + T);
+
+//#pragma omp parallel for
 
         for (int i = 0; i < A.rows; i++) {
             for (int j = 0; j < A.cols; j++) {
@@ -208,6 +204,8 @@ Matrix ComputeActivations(const Spectrogram *X, unsigned int iterations, double 
 
 //        SaveMatrixToCSV("num.csv", &num);
 
+//#pragma omp parallel for
+
         for (int row = 0; row < activations.rows; row++) {
             for (int c = 0; c < ncol - T; c++) {
                 if (denom_all_col.array[row][c] < 1e-8) {
@@ -218,6 +216,7 @@ Matrix ComputeActivations(const Spectrogram *X, unsigned int iterations, double 
         }
 
 //        SaveMatrixToCSV("H1.csv", &activations);
+//#pragma omp parallel for
 
         for (int c = (int) (ncol - T); c < ncol; c++) {
             for (int row = 0; row < activations.rows; row++) {
@@ -305,8 +304,11 @@ Matrix GetActivationsFromFile(const char *filename, Dictionary *dictionary, doub
 }
 
 
-Matrix GetActivations(const char *filename, double time_limit, int iterations) {
+Matrix GetActivations(const char *filename, double time_limit, int iterations, bool recompute) {
     Dictionary dict = GetDictionary("AkPnBcht");
+
+//    Dictionary dict = GetDictionary("AkPnBsdf");
+
 
     char H_persisted_name[1000];
 
@@ -314,7 +316,7 @@ Matrix GetActivations(const char *filename, double time_limit, int iterations) {
 
     Matrix activations = LoadMatrixFromCSV(H_persisted_name);
 
-    if (activations.rows == 0 && activations.cols == 0) {
+    if ((activations.rows == 0 && activations.cols == 0) || recompute) {
         activations = GetActivationsFromFile(filename, &dict, time_limit, iterations);
     }
 

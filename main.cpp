@@ -5,6 +5,7 @@
 #include "transcription.h"
 
 
+
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
@@ -15,12 +16,10 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
 
-    engine.rootContext()->setContextProperty("Transcription_getNotes", transcription.getNotes());
-//        engine.rootContext()->setContextProperty("Transcription_getOnsets", transcription.getOnsets());
+//    printf("%d", omp_get_num_threads());
 
-\
+//    engine.rootContext()->setContextProperty("Transcription_getNotes", transcription.getNotes());
 //    engine.rootContext()->setContextProperty("Transcription.getNotes()", transcription.getNotes());
-
 
     const QUrl url(u"qrc:/Flickable/Main.qml"_qs);
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreationFailed,

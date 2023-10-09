@@ -13,25 +13,27 @@
 
 #include "full_transcription.h"
 
+#include <time.h>
+
+#include "omp.h"
+
 
 void test() {
-//    WavFile wav = ReadWav(
-//            "C:/Users/ruanb/OneDrive/Desktop/Piano Transcripton/Piano transcription/MAPS/AkPnBcht/ISOL/NO/MAPS_ISOL_NO_F_S0_M23_AkPnBcht.wav");
 
-//    DynamicArray mono = StereoToMono(&wav, "average");
 
-//    SaveArrayToCSV("mono.csv", &mono);
+    printf("Max threads: %d\n", omp_get_max_threads());
 
-//    Spectrogram spec = STFT(&mono, 4096, 882, 8192, 1, 44100);
+    #pragma omp parallel
+    {
 
-//    SaveSpectrogramToCSV("testSpec.csv", &spec);
+        printf("%d : ", omp_get_num_threads());
 
-    int a = 0;
+        printf("%d\n", omp_get_thread_num());
 
-    printf("aaaaaaaaaaaaaaaaaaaaaaaaaaa");
+    }
 }
 
-Matrix full_transcription(){
+Matrix full_transcription(const char* songFile, const char* transcriptionFile){
     // Define the parameters
 
 //    dictionaryTest();
@@ -40,17 +42,20 @@ Matrix full_transcription(){
 //    test();
 //    GraphTest();
 //    matrixTest();
+//    test();
 
+    clock_t start_time, end_time;
 
+    start_time = clock();
 
-    const char *filename = "MAPS_MUS-alb_se3_AkPnBcht.wav";
+//    const char *filename = "MAPS_MUS-alb_se3_AkPnBcht.wav";
 //    const char *filename = "C:\\Users\\ruanb\\OneDrive\\Desktop\\Piano Transcripton\\Piano transcription\\MAPS\\AkPnBcht\\MUS\\MAPS_MUS-alb_se3_AkPnBcht.wav";
 
 
-    double time_limit = 6;
+    double time_limit = 2;
     int iterations = 20;
 
-    WavFile wav = ReadWav(filename);
+    WavFile wav = ReadWav(songFile);
 
     DynamicArray mono = StereoToMono(&wav, "average");
 
@@ -61,8 +66,14 @@ Matrix full_transcription(){
 
     printf("delay: %f\n", delay);
 
-    Matrix activations = GetActivations(filename, time_limit, iterations);
+    Matrix activations = GetActivations(songFile, time_limit, iterations, true);
 //    Matrix activations = LoadMatrixFromCSV("H_to_test_F1calc.csv");
+
+    end_time = clock();
+
+    double elapsed_time = (double)(end_time - start_time) / CLOCKS_PER_SEC;
+
+    printf("Elapsed time for activations: %.2f seconds\n", elapsed_time);
 
     double threshold = GetThreshold(&activations);
 
@@ -96,11 +107,11 @@ Matrix full_transcription(){
     }
 
 
+//    Matrix refs = LoadRefsFromFile(
+//            "C:\\Users\\ruanb\\OneDrive\\Desktop\\Piano Transcripton\\Piano transcription\\MAPS\\AkPnBcht\\MUS\\MAPS_MUS-alb_se3_AkPnBcht.txt",
+//            time_limit - delay);
 
-    Matrix refs = LoadRefsFromFile(
-            "C:\\Users\\ruanb\\OneDrive\\Desktop\\Piano Transcripton\\Piano transcription\\MAPS\\AkPnBcht\\MUS\\MAPS_MUS-alb_se3_AkPnBcht.txt",
-            time_limit - delay);
-//            time_limit );
+    Matrix refs = LoadRefsFromFile(transcriptionFile, time_limit - delay);
 
     double ref_min = 99;
 

@@ -6,6 +6,10 @@
 #include "matrix.h"
 #include "stdlib.h"
 #include "stdio.h"
+#include "math.h"
+
+#include "omp.h"
+
 
 
 Matrix CreateMatrix(unsigned int nRows, unsigned int nCols) {
@@ -35,16 +39,50 @@ void DestroyMatrix(Matrix *matrix) {
     matrix->array = NULL;
 }
 
-Matrix MatrixMultiply(const Matrix *a, const Matrix *b) {
-    Matrix result = CreateMatrix(a->rows, b->cols);
+//Matrix MatrixMultiply(const Matrix *a, const Matrix *b) {
+//    Matrix result = CreateMatrix(a->rows, b->cols);
 
-    for (int i = 0; i < a->rows; i++) {
-        for (int j = 0; j < b->cols; j++) {
-            for (int k = 0; k < a->cols; k++) {
-                result.array[i][j] += a->array[i][k] * b->array[k][j];
+//    for (int i = 0; i < a->rows; i++) {
+//        for (int j = 0; j < b->cols; j++) {
+//            for (int k = 0; k < a->cols; k++) {
+//                result.array[i][j] += a->array[i][k] * b->array[k][j];
+//            }
+//        }
+//    }
+
+//    return result;
+//}
+
+Matrix MatrixMultiply(const Matrix *a, const Matrix *b)
+{
+
+    int block_size = 32;
+
+    int rows = a->rows;
+    int cols = b->cols;
+    int common_dim = a->cols;
+
+    Matrix result = CreateMatrix(rows, cols);
+
+#pragma omp parallel for collapse(2)
+    for (int i = 0; i < rows; i += block_size) {
+
+        for (int k = 0; k < common_dim; k += block_size) {
+            for (int j = 0; j < cols; j += block_size) {
+                for (int ii = i; ii < i + block_size && ii < rows; ii++) {
+                    for (int kk = k; kk < k + block_size && kk < common_dim; kk++) {
+                        for (int jj = j; jj < j + block_size && jj < cols; jj++) {
+
+                                result.array[ii][jj] += a->array[ii][kk] * b->array[kk][jj];
+
+                        }
+                    }
+                }
             }
         }
     }
+
+
 
     return result;
 }

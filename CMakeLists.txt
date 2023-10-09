@@ -4,7 +4,11 @@ project(Flickable VERSION 0.1 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 6.4 REQUIRED COMPONENTS Quick)
+set(CMAKE_CXX_FLAGS "-Wall -ffast-math -fopenmp")
+set(CMAKE_C_FLAGS "-Wall -ffast-math -fopenmp")
+
+
+find_package(Qt6 6.4 REQUIRED COMPONENTS Quick Concurrent)
 
 qt_standard_project_setup()
 
@@ -19,7 +23,13 @@ qt_add_qml_module(appFlickable
     VERSION 1.0
 SOURCES
 RESOURCES
-QML_FILES Keyboard.qml KeyboardNote.qml Main.qml NoteActivation.qml Octave.qml GridBlock.qml CustomGrid.qml
+QML_FILES Keyboard.qml KeyboardNote.qml Main.qml NoteActivation.qml Octave.qml GridBlock.qml CustomGrid.qml PianoRoll.qml
+QML_FILES MainMenu.qml TranscriptionWaitingScreen.qml
+QML_FILES SongLoadingScreen.qml
+QML_FILES RecordingScreen.qml
+QML_FILES BackButton.qml
+QML_FILES DebugBox.qml
+QML_FILES
 
 )
 
@@ -37,11 +47,13 @@ set_target_properties(appFlickable PROPERTIES
 find_package(HDF5 COMPONENTS C HL)
 
 
+find_package(OpenMP)
+
 include_directories(${HDF5_INCLUDE_DIRS} code/headers)
 
 
 target_link_libraries(appFlickable
-    PRIVATE Qt6::Quick         ${HDF5_LIBRARIES} # This should list all libraries.
+    PRIVATE Qt6::Quick ${HDF5_LIBRARIES} PUBLIC OpenMP::OpenMP_CXX Qt6::Concurrent
 )
 
 
