@@ -17,6 +17,7 @@
 
 extern "C" {
 #include "matrix.h"
+#include "dictionary.h"
 }
 
 class Transcription : public QObject
@@ -67,7 +68,10 @@ private:
     QAudioSource* m_audioInputSource;
     QBuffer m_audioInputBuffer;
 
+    Dictionary m_dictionary;
+
     QVariantList notesToVariantList(Matrix estimated_notes);
+
 
 
 

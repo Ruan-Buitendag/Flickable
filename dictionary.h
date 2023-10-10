@@ -26,6 +26,9 @@ Spectrogram GetSpectrogramFromDictionary(Dictionary const * dictionary, unsigned
 Matrix GetMatrixFromDictionary(Dictionary const *dictionary, unsigned int axis, unsigned int index);
 
 Dictionary GetDictionary(const char * piano_name);
+Dictionary LoadTranscriptionDictionary();
+
+void DestroyDictionary(Dictionary *dictionary);
 
 void dictionaryTest();
 

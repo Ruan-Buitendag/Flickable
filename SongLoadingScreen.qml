@@ -83,7 +83,7 @@ Rectangle {
                 anchors.fill: parent
 
                 onClicked: {
-                    doTranscription()
+                    doTranscription("recorded")
                 }
             }
         }

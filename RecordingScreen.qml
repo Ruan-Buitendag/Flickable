@@ -69,9 +69,13 @@ Rectangle {
                         if (!record_button.recording) {
                             transcribe_button.visible = true
                             transcribe_button.opacity = 1
+
+                            transcription.stopRecording()
                         } else {
                             transcribe_button.visible = false
                             transcribe_button.opacity = 0
+
+                            transcription.startRecording()
                         }
                     }
                 }
@@ -96,7 +100,7 @@ Rectangle {
                     anchors.fill: parent
 
                     onClicked: {
-                        doTranscription()
+                        doTranscription("live")
                         console.log("Transcribing")
                     }
                 }

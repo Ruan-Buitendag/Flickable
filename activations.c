@@ -295,13 +295,13 @@ Matrix GetActivationsFromFile(const char *filename, Dictionary *dictionary, doub
     Spectrogram spec = STFT(&mono, 4096, 882, 8192, time_limit, 44100);
     Spectrogram filtered = HardFilterSpectrogram(&spec, 1500);
 
-    Dictionary aaaa = HardFilterSpectrograms(dictionary, 1500);
+//    Dictionary aaaa = HardFilterSpectrograms(dictionary, 1500);
 
-    NormaliseDictionary(&aaaa);
+//    NormaliseDictionary(&aaaa);
 
     DestroySpectrogram(&spec);
 
-    Matrix activations = ComputeActivations(&filtered, iterations, 1, 0.1, &aaaa);
+    Matrix activations = ComputeActivations(&filtered, iterations, 1, 0.1, dictionary);
 
     char H_persisted_name[1000];
 
@@ -314,8 +314,8 @@ Matrix GetActivationsFromFile(const char *filename, Dictionary *dictionary, doub
 
 
 
-Matrix GetActivations(const char *filename, double time_limit, int iterations, bool recompute) {
-    Dictionary dict = GetDictionary("AkPnBcht");
+Matrix GetActivations(const char *filename, Dictionary* dictionary, double time_limit, int iterations, bool recompute) {
+//    Dictionary dict = GetDictionary("AkPnBcht");
 
 //    Dictionary dict = GetDictionary("AkPnBsdf");
 
@@ -327,25 +327,25 @@ Matrix GetActivations(const char *filename, double time_limit, int iterations, b
     Matrix activations = LoadMatrixFromCSV(H_persisted_name);
 
     if ((activations.rows == 0 && activations.cols == 0) || recompute) {
-        activations = GetActivationsFromFile(filename, &dict, time_limit, iterations);
+        activations = GetActivationsFromFile(filename, dictionary, time_limit, iterations);
     }
 
     return activations;
 }
 
 
-Matrix GetActivationsFromArray(const DynamicArray *array, Dictionary *dictionary, double time_limit, int iterations)
+Matrix GetActivationsFromArray(DynamicArray *array, Dictionary *dictionary, double time_limit, int iterations)
 {
     Spectrogram spec = STFT(array, 4096, 882, 8192, time_limit, 44100);
     Spectrogram filtered = HardFilterSpectrogram(&spec, 1500);
 
-    Dictionary aaaa = HardFilterSpectrograms(dictionary, 1500);
+//    Dictionary aaaa = HardFilterSpectrograms(dictionary, 1500);
 
-    NormaliseDictionary(&aaaa);
+//    NormaliseDictionary(&aaaa);
 
     DestroySpectrogram(&spec);
 
-    Matrix activations = ComputeActivations(&filtered, iterations, 1, 0.1, &aaaa);
+    Matrix activations = ComputeActivations(&filtered, iterations, 1, 0.1, dictionary);
 
     return activations;
 }

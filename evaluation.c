@@ -180,7 +180,6 @@ void EvaluateTranscription(Matrix *ref, Matrix *est) {
     DestroyMatrix(&hits);
 
     Graph graph = CreateGraph(1000, 1000);
-//    Graph graph = CreateGraph(ref->rows, est->rows);
 
     for (int i = 0; i < counter; i++) {
         AddEdge(&graph, ref_i[i], est_i[i]);
@@ -188,12 +187,32 @@ void EvaluateTranscription(Matrix *ref, Matrix *est) {
 
     int maxMatching = MaxBipartiteMatching(&graph);
 
-//    printf("Max matching: %d\n", maxMatching);
 
-    double precision = (double)maxMatching / est->rows;
-    double recall = (double)maxMatching / ref->rows;
-    double f1 = 2 * precision * recall / (precision + recall);
-//    FP = int(TP * (1 - prec) / prec)
+    double precision;
+
+    if(est->rows == 0){
+        precision = 0;
+    } else {
+        precision = (double)maxMatching / est->rows;
+    }
+
+
+    double recall;
+
+    if(ref->rows == 0){
+        recall = 0;
+    } else {
+        recall = (double)maxMatching / ref->rows;
+    }
+
+    double f1;
+
+    if(precision > 0 && recall > 0){
+        f1 = 2 * precision * recall / (precision + recall);
+    } else {
+        f1 = 0;
+    }
+
     int falsePositives = est->rows - maxMatching;
     int falseNegatives = ref->rows - maxMatching;
 

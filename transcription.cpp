@@ -25,27 +25,33 @@ Transcription::Transcription(QObject *parent)
 
     m_audioInputBuffer.open(QIODevice::ReadWrite);
 
+
+    m_dictionary = LoadTranscriptionDictionary();
+
 }
 
 void Transcription::startRecordedTranscription()
 {
     auto function = &Transcription::recordedTranscription;
-    QtConcurrent::run(function, this);
+    auto temp = QtConcurrent::run(function, this);
 }
 
 void Transcription::startLiveTranscription()
 {
     auto function = &Transcription::liveTranscription;
-    QtConcurrent::run(function, this);
+    auto temp = QtConcurrent::run(function, this);
 }
 
 void Transcription::startRecording()
 {
+    qDebug() << "Starting recording";
     m_audioInputSource->start(&m_audioInputBuffer);
 }
 
 void Transcription::stopRecording()
 {
+    qDebug() << "Stopping recording";
+
     m_audioInputSource->stop();
 
     m_audioInputBuffer.seek(0);
@@ -54,7 +60,7 @@ void Transcription::stopRecording()
 
 void Transcription::liveTranscription()
 {
-    qDebug() << m_audioInputDevice.description();
+    qDebug() << "Starting live transcription";
 
     m_audioInputBuffer.seek(0);
 
@@ -76,14 +82,14 @@ void Transcription::liveTranscription()
     while(!stream.atEnd()) {
         qint16 value;
         stream >> value;
-        array.array[counter] = value;
+        array.array[counter] = value/32768.0;
         counter++;
     }
 
     std::string qTranscriptionFile = m_transcriptionFile.toLocalFile().toStdString();
     const char* transcriptionFilename = qTranscriptionFile.c_str();
 
-    Matrix estimated_notes = full_transcription_from_array(&array, transcriptionFilename);
+    Matrix estimated_notes = full_transcription_from_array(&array, transcriptionFilename, &m_dictionary);
 
     QVariantList list = notesToVariantList(estimated_notes);
 
@@ -119,7 +125,7 @@ void Transcription::recordedTranscription()
     qDebug() << waveFilename;
     qDebug() << transcriptionFilename;
 
-    Matrix estimated_notes = full_transcription_from_wav(waveFilename, transcriptionFilename);
+    Matrix estimated_notes = full_transcription_from_wav(waveFilename, transcriptionFilename, &m_dictionary);
 
     QVariantList list = notesToVariantList(estimated_notes);
 

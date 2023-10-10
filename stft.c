@@ -11,10 +11,16 @@
 #include "stdlib.h"
 
 Spectrogram STFT(DynamicArray *x, int windowSize, int hopSize, int fftSize, double time_limit, int sampling_rate) {
-    DynamicArray timelimited = CreateDynamicArray(round(time_limit * sampling_rate));
+    DynamicArray timelimited;
 
-    for (int i = 0; i < time_limit * sampling_rate; i++) {
-        timelimited.array[i] = x->array[i];
+    if(x->size < time_limit * sampling_rate){
+        timelimited = *x;
+    } else {
+        timelimited = CreateDynamicArray(round(time_limit * sampling_rate));
+
+        for (int i = 0; i < time_limit * sampling_rate; i++) {
+            timelimited.array[i] = x->array[i];
+        }
     }
 
     DynamicArray xCopy = CreateDynamicArray(timelimited.size + 2 * windowSize);

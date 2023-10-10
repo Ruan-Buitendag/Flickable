@@ -146,7 +146,6 @@ Rectangle {
             anchors.fill = undefined
         }
 
-        //    }
         Behavior on x {
             NumberAnimation {
                 duration: 200
@@ -158,18 +157,12 @@ Rectangle {
     Rectangle {
         id: nav_bar
 
-        //        visible: false
         color: "#2f2f2f"
 
         height: parent.height
         width: back_button.width
 
         x: -width
-
-        //        x: 0
-        BackButton {
-            id: back_button
-        }
 
         Behavior on x {
             NumberAnimation {
@@ -189,10 +182,24 @@ Rectangle {
         onEntered: {
             pianoroll_background.x = nav_bar.width
             nav_bar.x = 0
+            back_button.x = 0
         }
         onExited: {
             pianoroll_background.x = 0
             nav_bar.x = -nav_bar.width
+            back_button.x = -nav_bar.width
+        }
+    }
+
+    BackButton {
+        id: back_button
+        x: -width
+
+        Behavior on x {
+            NumberAnimation {
+                duration: 200
+                easing.type: Easing.InOutQuad
+            }
         }
     }
 

@@ -9,7 +9,7 @@
 
 #include "wav.h"
 #include "activations.h"
-#include "note_transcription.h"
+#include "activation_postprocessing.h"
 
 #include "full_transcription.h"
 
@@ -33,7 +33,7 @@ void test() {
     }
 }
 
-Matrix full_transcription_from_wav(const char* songFile, const char* transcriptionFile){
+Matrix full_transcription_from_wav(const char* songFile, const char* transcriptionFile, Dictionary* dictionary){
     // Define the parameters
 
 //    dictionaryTest();
@@ -66,7 +66,7 @@ Matrix full_transcription_from_wav(const char* songFile, const char* transcripti
 
     printf("delay: %f\n", delay);
 
-    Matrix activations = GetActivations(songFile, time_limit, iterations, true);
+    Matrix activations = GetActivations(songFile, dictionary, time_limit, iterations, true);
 //    Matrix activations = LoadMatrixFromCSV("H_to_test_F1calc.csv");
 
     end_time = clock();
@@ -137,7 +137,7 @@ Matrix full_transcription_from_wav(const char* songFile, const char* transcripti
 
 
 
-Matrix full_transcription_from_array(const DynamicArray *array, const char *transcriptionFile)
+Matrix full_transcription_from_array(DynamicArray *array, const char *transcriptionFile, Dictionary* dictionary)
 {
     clock_t start_time, end_time;
 
@@ -159,7 +159,7 @@ Matrix full_transcription_from_array(const DynamicArray *array, const char *tran
 
     printf("delay: %f\n", delay);
 
-    Matrix activations = GetActivations(array, time_limit, iterations, true);
+    Matrix activations = GetActivationsFromArray(array, dictionary, time_limit, iterations);
     //    Matrix activations = LoadMatrixFromCSV("H_to_test_F1calc.csv");
 
     end_time = clock();

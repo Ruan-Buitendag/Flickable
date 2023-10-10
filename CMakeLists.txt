@@ -14,8 +14,8 @@ qt_standard_project_setup()
 
 qt_add_executable(appFlickable
     main.cpp
-    activations.c CMakeLists.txt dictionary.c dynamicarray.c evaluation.c full_transcription.c matrix.c note_transcription.c spectrogram.c stft.c wav.c
-    activations.h dictionary.h dynamicarray.h evaluation.h full_transcription.h main.cpp matrix.h note_transcription.h spectrogram.h stft.h transcription.cpp transcription.h wav.h
+    activations.c CMakeLists.txt dictionary.c dynamicarray.c evaluation.c full_transcription.c matrix.c activation_postprocessing.c spectrogram.c stft.c wav.c
+    activations.h dictionary.h dynamicarray.h evaluation.h full_transcription.h main.cpp matrix.h activation_postprocessing.h spectrogram.h stft.h transcription.cpp transcription.h wav.h
 )
 
 qt_add_qml_module(appFlickable

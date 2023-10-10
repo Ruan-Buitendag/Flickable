@@ -55,10 +55,15 @@ Window {
         TranscriptionWaitingScreen {}
     }
 
-    function doTranscription() {
+    function doTranscription(type) {
         console.log("Pushing transcription waiting screen")
         stackview.push(transcription_waiting_screen)
         console.log("Starting transcription")
-        transcription.bals()
+
+        if (type == "recorded") {
+            transcription.startRecordedTranscription()
+        } else if (type == "live") {
+            transcription.startLiveTranscription()
+        }
     }
 }

@@ -272,3 +272,28 @@ Dictionary GetDictionary(const char *piano_name) {
     return dictionary;
 }
 
+
+Dictionary LoadTranscriptionDictionary()
+{
+    Dictionary dict = GetDictionary("AkPnBcht");
+
+    Dictionary filtered = HardFilterSpectrograms(&dict, 1500);
+
+    DestroyDictionary(&dict);
+
+    NormaliseDictionary(&filtered);
+
+    return filtered;
+}
+
+void DestroyDictionary(Dictionary *dictionary)
+{
+    for(int i = 0; i < dictionary->shape[0]; i++)
+    {
+        for(int j = 0; j < dictionary->shape[1]; j++)
+        {
+            free(dictionary->data[i][j]);
+        }
+        free(dictionary->data[i]);
+    }
+}

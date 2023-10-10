@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <math.h>
 #include <stdio.h>
-#include "note_transcription.h"
+#include "activation_postprocessing.h"
 
 Matrix TranscribeNotesFromActivations(const Matrix *activations, double threshold, double time_step) {
 //    Matrix notes = CreateMatrix(500, 3);
