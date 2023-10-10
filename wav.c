@@ -96,6 +96,8 @@ WavFile ReadWav(const char *filename) {
                     break;
             }
 
+                printf("High limits: %d", high_limit);
+
 //                printf("\n\nValid range for data values : %ld to %ld \n", low_limit, high_limit);
             for (i = 1; i <= header.num_samples; i++) {
 //                printf("==========Sample %ld / %ld=============\n", i, header.num_samples);

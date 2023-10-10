@@ -22,7 +22,7 @@ Item {
         highlightFollowsCurrentItem: false
 
         Component.onCompleted: {
-            transcription.audioDevice = model[0]
+            transcription.audioInputDevice = model[0]
             currentIndex = 0
             highlighter.y = listview.currentItem.y
         }
@@ -52,7 +52,7 @@ Item {
                     listview.currentIndex = index
                     highlighter.y = listview.currentItem.y
 
-                    transcription.audioDevice = modelData
+                    transcription.audioInputDevice = modelData
                 }
             }
         }

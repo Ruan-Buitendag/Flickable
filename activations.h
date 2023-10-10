@@ -8,6 +8,7 @@
 #include "spectrogram.h"
 #include "dictionary.h"
 #include "matrix.h"
+#include "dynamicarray.h"
 
 double BetaDivergence(Matrix const *x, Matrix const *y, double beta);
 
@@ -17,6 +18,7 @@ Matrix
 ComputeActivations(Spectrogram const *input, unsigned int iterations, double beta, double error, Dictionary *dictionary);
 
 Matrix GetActivationsFromFile(const char *filename, Dictionary *dictionary, double time_limit, int iterations);
+Matrix GetActivationsFromArray(const DynamicArray * array, Dictionary *dictionary, double time_limit, int iterations);
 
 Matrix GetActivations(const char *filename, double time_limit, int iterations, bool recompute);
 

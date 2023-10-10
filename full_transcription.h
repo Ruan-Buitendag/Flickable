@@ -3,8 +3,12 @@
 
 
 #include "matrix.h"
+#include "dynamicarray.h"
 
-Matrix full_transcription(const char* songFile, const char* transcriptionFile);
+Matrix full_transcription_from_wav(const char* songFile, const char* transcriptionFile);
+
+Matrix full_transcription_from_array(const DynamicArray * array, const char* transcriptionFile);
+
 
 void test();
 

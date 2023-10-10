@@ -4,37 +4,95 @@ extern "C" {
 #include "full_transcription.h"
 }
 
-
 Transcription::Transcription(QObject *parent)
     : QObject{parent}
 {
     m_songName = QUrl::fromLocalFile("C:/Users/ruanb/OneDrive/Desktop/Piano Transcripton/Piano transcription/MAPS/AkPnBcht/MUS/MAPS_MUS-alb_se3_AkPnBcht.wav");
     m_transcriptionFile = QUrl::fromLocalFile("C:/Users/ruanb/OneDrive/Desktop/Piano Transcripton/Piano transcription/MAPS/AkPnBcht/MUS/MAPS_MUS-alb_se3_AkPnBcht.txt");
+
+    QAudioFormat format;
+    format.setSampleRate(44100);
+    format.setChannelCount(1);
+    format.setSampleFormat(QAudioFormat::Int16);
+
+    m_audioInputDevice = QMediaDevices::defaultAudioInput();
+
+    if (!m_audioInputDevice.isFormatSupported(format)) {
+        qWarning() << "Default format not supported ny input device, trying to use the nearest.";
+    }
+
+    m_audioInputSource = new QAudioSource(m_audioInputDevice, format);
+
+    m_audioInputBuffer.open(QIODevice::ReadWrite);
+
 }
 
-void Transcription::bals()
+void Transcription::startRecordedTranscription()
 {
-    auto asshole = &Transcription::startTranscription;
-    QtConcurrent::run(asshole, this);
+    auto function = &Transcription::recordedTranscription;
+    QtConcurrent::run(function, this);
 }
 
-
-void Transcription::startTranscription()
+void Transcription::startLiveTranscription()
 {
+    auto function = &Transcription::liveTranscription;
+    QtConcurrent::run(function, this);
+}
 
-    qDebug() << m_audioDevice.description();
+void Transcription::startRecording()
+{
+    m_audioInputSource->start(&m_audioInputBuffer);
+}
 
-    std::string qSongName = m_songName.toLocalFile().toStdString();
+void Transcription::stopRecording()
+{
+    m_audioInputSource->stop();
+
+    m_audioInputBuffer.seek(0);
+
+}
+
+void Transcription::liveTranscription()
+{
+    qDebug() << m_audioInputDevice.description();
+
+    m_audioInputBuffer.seek(0);
+
+    QDataStream stream(&m_audioInputBuffer);
+
+    int counter = 0;
+
+    while(!stream.atEnd()) {
+        qint16 value;
+        stream >> value;
+        counter++;
+    }
+
+    DynamicArray array = CreateDynamicArray(counter);
+
+    m_audioInputBuffer.seek(0);
+
+    counter = 0;
+    while(!stream.atEnd()) {
+        qint16 value;
+        stream >> value;
+        array.array[counter] = value;
+        counter++;
+    }
+
     std::string qTranscriptionFile = m_transcriptionFile.toLocalFile().toStdString();
-
-    const char* waveFilename = qSongName.c_str();
     const char* transcriptionFilename = qTranscriptionFile.c_str();
 
-    qDebug() << waveFilename;
-    qDebug() << transcriptionFilename;
+    Matrix estimated_notes = full_transcription_from_array(&array, transcriptionFilename);
 
-    Matrix estimated_notes = full_transcription(waveFilename, transcriptionFilename);
+    QVariantList list = notesToVariantList(estimated_notes);
 
+    m_notes = list;
+    emit notesChanged(m_notes);
+}
+
+QVariantList Transcription::notesToVariantList(Matrix estimated_notes)
+{
     QVariantList list;
 
     for(int i = 0; i < estimated_notes.rows; i++)
@@ -45,6 +103,25 @@ void Transcription::startTranscription()
 
         list << map;
     }
+
+    return list;
+}
+
+void Transcription::recordedTranscription()
+{
+
+    std::string qSongName = m_songName.toLocalFile().toStdString();
+    std::string qTranscriptionFile = m_transcriptionFile.toLocalFile().toStdString();
+
+    const char* waveFilename = qSongName.c_str();
+    const char* transcriptionFilename = qTranscriptionFile.c_str();
+
+    qDebug() << waveFilename;
+    qDebug() << transcriptionFilename;
+
+    Matrix estimated_notes = full_transcription_from_wav(waveFilename, transcriptionFilename);
+
+    QVariantList list = notesToVariantList(estimated_notes);
 
     m_notes = list;
     emit notesChanged(m_notes);
@@ -85,13 +162,13 @@ void Transcription::setTranscriptionFile(const QUrl &transcriptionFile)
     emit transcriptionFileChanged(m_transcriptionFile);
 }
 
-QAudioDevice Transcription::audioDevice() const
+QAudioDevice Transcription::audioInputDevice() const
 {
-    return m_audioDevice;
+    return m_audioInputDevice;
 }
 
-void Transcription::setAudioDevice(const QAudioDevice &audioDevice)
+void Transcription::setAudioInputDevice(const QAudioDevice &audioDevice)
 {
-    m_audioDevice = audioDevice;
-    emit audioDeviceChanged(m_audioDevice);
+    m_audioInputDevice = audioDevice;
+    emit audioInputDeviceChanged(m_audioInputDevice);
 }

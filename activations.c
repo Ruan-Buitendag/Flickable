@@ -313,6 +313,7 @@ Matrix GetActivationsFromFile(const char *filename, Dictionary *dictionary, doub
 }
 
 
+
 Matrix GetActivations(const char *filename, double time_limit, int iterations, bool recompute) {
     Dictionary dict = GetDictionary("AkPnBcht");
 
@@ -332,3 +333,19 @@ Matrix GetActivations(const char *filename, double time_limit, int iterations, b
     return activations;
 }
 
+
+Matrix GetActivationsFromArray(const DynamicArray *array, Dictionary *dictionary, double time_limit, int iterations)
+{
+    Spectrogram spec = STFT(array, 4096, 882, 8192, time_limit, 44100);
+    Spectrogram filtered = HardFilterSpectrogram(&spec, 1500);
+
+    Dictionary aaaa = HardFilterSpectrograms(dictionary, 1500);
+
+    NormaliseDictionary(&aaaa);
+
+    DestroySpectrogram(&spec);
+
+    Matrix activations = ComputeActivations(&filtered, iterations, 1, 0.1, &aaaa);
+
+    return activations;
+}

@@ -8,8 +8,16 @@
 #include <QVariantMap>
 #include <QUrl>
 #include <QtConcurrent>
-
 #include <QAudioDevice>
+//#include <QAudioSink>
+#include <QAudioSource>
+#include <QBuffer>
+#include <QDataStream>
+#include <QMediaDevices>
+
+extern "C" {
+#include "matrix.h"
+}
 
 class Transcription : public QObject
 {
@@ -17,14 +25,19 @@ class Transcription : public QObject
 public:
     Transcription(QObject *parent = nullptr);
 
-    Q_INVOKABLE void bals();
+    Q_INVOKABLE void startRecordedTranscription();
+    Q_INVOKABLE void startLiveTranscription();
+    Q_INVOKABLE void startRecording();
+    Q_INVOKABLE void stopRecording();
 
-    void startTranscription();
+
+    void liveTranscription();
+    void recordedTranscription();
 
     Q_PROPERTY(QVariantList notes READ notes WRITE setNotes NOTIFY notesChanged FINAL);
     Q_PROPERTY(QUrl songName READ songName WRITE setSongName NOTIFY songNameChanged FINAL);
     Q_PROPERTY(QUrl transcriptionFile READ transcriptionFile WRITE setTranscriptionFile NOTIFY transcriptionFileChanged FINAL);
-    Q_PROPERTY(QAudioDevice audioDevice READ audioDevice WRITE setAudioDevice NOTIFY audioDeviceChanged FINAL);
+    Q_PROPERTY(QAudioDevice audioInputDevice READ audioInputDevice WRITE setAudioInputDevice NOTIFY audioInputDeviceChanged FINAL);
 
     QUrl songName() const;
     void setSongName(const QUrl &songName);
@@ -36,21 +49,27 @@ public:
     QUrl transcriptionFile() const;
     void setTranscriptionFile(const QUrl &transcriptionFile);
 
-    QAudioDevice audioDevice() const;
-    void setAudioDevice(const QAudioDevice &audioDevice);
-
+    QAudioDevice audioInputDevice() const;
+    void setAudioInputDevice(const QAudioDevice &audioInputDevice);
 
 signals:
     void songNameChanged(QUrl songName);
     void notesChanged(QVariantList notes);
     void transcriptionFileChanged(QUrl transcriptionFile);
-    void audioDeviceChanged(QAudioDevice audioDevice);
+    void audioInputDeviceChanged(QAudioDevice audioInputDevice);
 
 private:
     QUrl m_songName;
     QVariantList m_notes;
     QUrl m_transcriptionFile;
-    QAudioDevice m_audioDevice;
+
+    QAudioDevice m_audioInputDevice;
+    QAudioSource* m_audioInputSource;
+    QBuffer m_audioInputBuffer;
+
+    QVariantList notesToVariantList(Matrix estimated_notes);
+
+
 
 };
 
