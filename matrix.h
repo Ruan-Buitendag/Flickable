@@ -33,6 +33,9 @@ Matrix TrimMatrix(Matrix * matrix);
 void SaveMatrixToCSV(const char *filename, Matrix const* matrix) ;
 Matrix LoadMatrixFromCSV(const char *filename);
 
+double* FlattenMatrix(Matrix const *matrix);
+Matrix ReshapeMatrix(double *array, unsigned int rows, unsigned int cols);
+
 void matrixTest();
 
 #ifdef __cplusplus

@@ -10,6 +10,35 @@
 
 #include "omp.h"
 
+#include "stdlib.h"
+#include "windows.h"
+
+#include "time.h"
+
+//#include "mkl.h"
+//#include "mkl_cblas.h"
+
+size_t cache_line_size() {
+    size_t line_size = 0;
+    DWORD buffer_size = 0;
+    DWORD i = 0;
+    SYSTEM_LOGICAL_PROCESSOR_INFORMATION * buffer = 0;
+
+    GetLogicalProcessorInformation(0, &buffer_size);
+    buffer = (SYSTEM_LOGICAL_PROCESSOR_INFORMATION *)malloc(buffer_size);
+    GetLogicalProcessorInformation(&buffer[0], &buffer_size);
+
+    for (i = 0; i != buffer_size / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION); ++i) {
+        if (buffer[i].Relationship == RelationCache && buffer[i].Cache.Level == 1) {
+            line_size = buffer[i].Cache.LineSize;
+            break;
+        }
+    }
+
+    free(buffer);
+    return line_size;
+}
+
 
 
 Matrix CreateMatrix(unsigned int nRows, unsigned int nCols) {
@@ -55,7 +84,6 @@ void DestroyMatrix(Matrix *matrix) {
 
 Matrix MatrixMultiply(const Matrix *a, const Matrix *b)
 {
-
     int block_size = 32;
 
     int rows = a->rows;
@@ -64,9 +92,28 @@ Matrix MatrixMultiply(const Matrix *a, const Matrix *b)
 
     Matrix result = CreateMatrix(rows, cols);
 
+
+    double* result_array = calloc(result.cols * result.rows, sizeof(double));
+    double* a_array = calloc(a->cols * a->rows, sizeof(double));
+    double* b_array = calloc(b->cols * b->rows, sizeof(double));
+
+
+    for(int i = 0; i < a->rows; i++){
+        for(int j = 0; j < a->cols; j++){
+            a_array[i * a->cols + j] = a->array[i][j];
+        }
+    }
+
+    for(int i = 0; i < b->rows; i++){
+        for(int j = 0; j < b->cols; j++){
+            b_array[i * b->cols + j] = b->array[i][j];
+        }
+    }
+
+//    clock_t begin = clock();
+
 #pragma omp parallel for collapse(2)
     for (int i = 0; i < rows; i += block_size) {
-
         for (int k = 0; k < common_dim; k += block_size) {
             for (int j = 0; j < cols; j += block_size) {
                 for (int ii = i; ii < i + block_size && ii < rows; ii++) {
@@ -82,7 +129,10 @@ Matrix MatrixMultiply(const Matrix *a, const Matrix *b)
         }
     }
 
+//    clock_t end = clock();
+//    double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
 
+//    printf("Time spent on matrix multiplication using matrices %lf", time_spent);
 
     return result;
 }
@@ -189,7 +239,7 @@ void SaveMatrixToCSV(const char *filename, Matrix const *matrix) {
     // Write the array data to the CSV file
     for (int i = 0; i < matrix->rows; i++) {
         for (int j = 0; j < matrix->cols; j++) {
-            fprintf(file, "%.6f", matrix->array[i][j]); // Adjust the format specifier as needed
+            fprintf(file, "%.10f", matrix->array[i][j]); // Adjust the format specifier as needed
             if (j < matrix->cols - 1) {
                 fprintf(file, ",");
             }
@@ -262,3 +312,27 @@ void matrixTest() {
 
 
 
+double *FlattenMatrix(const Matrix *matrix)
+{
+    double* flattened = (double*) calloc(matrix->rows * matrix->rows, sizeof(double));
+
+    for(int row = 0; row < matrix->rows; row++){
+        for(int col = 0; col < matrix->cols; col++){
+            flattened[row * matrix->cols + col] = matrix->array[row][col];
+        }
+    }
+
+
+    return flattened;
+}
+
+Matrix ReshapeMatrix(double *array, unsigned int rows, unsigned int cols)
+{
+    Matrix matrix = CreateMatrix(rows, cols);
+
+    for(int element = 0; element < matrix.rows * matrix.cols; element++){
+        matrix.array[element / matrix.cols][element % matrix.cols] = array[element];
+    }
+
+    return matrix;
+}

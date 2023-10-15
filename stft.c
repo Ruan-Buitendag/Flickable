@@ -14,7 +14,9 @@ Spectrogram STFT(DynamicArray *x, int windowSize, int hopSize, int fftSize, doub
     DynamicArray timelimited;
 
     if(x->size < time_limit * sampling_rate){
-        timelimited = *x;
+        timelimited = CreateDynamicArray(x->size);
+
+        CopyDynamicArray(&timelimited, x);
     } else {
         timelimited = CreateDynamicArray(round(time_limit * sampling_rate));
 

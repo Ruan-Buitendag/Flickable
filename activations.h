@@ -15,7 +15,7 @@ double BetaDivergence(Matrix const *x, Matrix const *y, double beta);
 Matrix ComputeConvolution(Dictionary const *dictionary, Matrix const *matrix2, unsigned int t);
 
 Matrix
-ComputeActivations(Spectrogram const *input, unsigned int iterations, double beta, double error, Dictionary *dictionary);
+ComputeActivations(Spectrogram const *input, unsigned int iterations, double error, Dictionary *dictionary, const char * init);
 
 Matrix GetActivationsFromFile(const char *filename, Dictionary *dictionary, double time_limit, int iterations);
 Matrix GetActivationsFromArray( DynamicArray * array, Dictionary *dictionary, double time_limit, int iterations);

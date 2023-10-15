@@ -82,7 +82,7 @@ Matrix TranscribeNotesFromActivations(const Matrix *activations, double threshol
             }
             else{
                 if(note_presence){
-                    double current_offset = time_index * time_step;
+//                    double current_offset = time_index * time_step;
                     notes.array[note_count][0] = current_onset;
 //                    notes.array[note_count][1] = current_offset;
 //                    notes.array[note_count][2] = current_pitch;

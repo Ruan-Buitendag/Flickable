@@ -12,14 +12,9 @@ int main(int argc, char *argv[])
 
     qmlRegisterType<Transcription>("Transcription", 1, 0, "Transcription");
 
-    Transcription transcription; // Instantiate the class
 
     QQmlApplicationEngine engine;
 
-//    printf("%d", omp_get_num_threads());
-
-//    engine.rootContext()->setContextProperty("Transcription_getNotes", transcription.getNotes());
-//    engine.rootContext()->setContextProperty("Transcription.getNotes()", transcription.getNotes());
 
     const QUrl url(u"qrc:/Flickable/Main.qml"_qs);
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreationFailed,

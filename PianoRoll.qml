@@ -2,15 +2,15 @@ import QtQuick
 import Transcription
 
 Rectangle {
+    id: screen_background
+
     anchors.fill: parent
 
     color: "#2f2f2f"
 
-    //    color: "white"
     Rectangle {
         id: pianoroll_background
 
-        //        anchors.fill: parent
         width: parent.width
         height: parent.height
 
@@ -18,7 +18,6 @@ Rectangle {
 
         color: "#2f2f2f"
 
-        //    Item {
         Flickable {
 
             x: keyboard.width
@@ -28,7 +27,7 @@ Rectangle {
             width: parent.width - keyboard.width
             height: parent.height
 
-            property int totalwidth: parent.width + 200
+            property int totalwidth: parent.width
 
             maximumFlickVelocity: 1000
 
@@ -87,6 +86,24 @@ Rectangle {
                                 note_flickable.totalwidth = x + 200
                             }
                         }
+                    }
+                }
+
+                Rectangle {
+                    id: playback_line
+
+                    width: 1
+
+                    color: "green"
+
+                    height: flickable_background.height
+
+                    NumberAnimation on x {
+                        id: playback_line_animation
+
+                        to: note_flickable.contentWidth
+                        duration: note_flickable.contentWidth / grid.blockWidth * 1000
+                        easing.type: Easing.Linear
                     }
                 }
             }
@@ -199,6 +216,28 @@ Rectangle {
             NumberAnimation {
                 duration: 200
                 easing.type: Easing.InOutQuad
+            }
+        }
+    }
+
+    Rectangle {
+        id: play_button
+
+        anchors.right: parent.right
+        anchors.top: parent.top
+
+        width: 25
+        height: 25
+
+        color: "white"
+
+        MouseArea {
+            anchors.fill: parent
+
+            onClicked: {
+                transcription.playMidiFile()
+                playback_line.x = 0
+                playback_line_animation.restart()
             }
         }
     }

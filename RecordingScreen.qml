@@ -144,4 +144,22 @@ Rectangle {
     AudioDeviceSelector {
         anchors.bottom: parent.bottom
     }
+
+    Rectangle {
+        x: 300
+        y: 300
+
+        width: 100
+        height: 100
+
+        color: "blue"
+
+        MouseArea {
+            anchors.fill: parent
+
+            onClicked: {
+                transcription.playRecording()
+            }
+        }
+    }
 }

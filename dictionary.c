@@ -105,30 +105,15 @@ void dictionaryTest() {
 
     Dictionary dictionaries[3];
 
-    int beta = 1; // Replace with the actual value
-    const char *init = "L1"; // Replace with the actual value
-    const char *spec_type = "stft"; // Replace with the actual value
-    int num_points = 4096; // Replace with the actual value
-    int itmax_W = 500; // Replace with the actual value
-    const char *note_intensity = "M"; // Replace with the actual value
-
-
-
     // Iterate through piano_W
     for (int i = 0; i < 3; i++) {
         char W_persisted_name[256]; // Adjust the size as needed
 
         // Create the formatted string
         snprintf(W_persisted_name, sizeof(W_persisted_name),
-                 "%sconv_dict_piano_%s_beta_%d_T_10_init_%s_%s_%d_itmax_%d_intensity_%s.h5",
+                 "%sconv_dict_piano_%s.h5",
                  dictionary_directory,
-                 piano_W[i],
-                 beta,
-                 init,
-                 spec_type,
-                 num_points,
-                 itmax_W,
-                 note_intensity);
+                 piano_W[i]);
 
         LoadDictionary(&dictionaries[i], W_persisted_name);
     }
@@ -140,7 +125,6 @@ void dictionaryTest() {
 
 }
 
-// TODO: this function, remember dict dims are (10, 4097, 88)
 Dictionary HardFilterSpectrograms(Dictionary *dictionary, unsigned int numNewRows) {
     Dictionary filtered;
 
@@ -257,15 +241,9 @@ Dictionary GetDictionary(const char *piano_name) {
 
     // Create the formatted string
     snprintf(W_persisted_name, sizeof(W_persisted_name),
-             "%sconv_dict_piano_%s_beta_%d_T_10_init_%s_%s_%d_itmax_%d_intensity_%s.h5",
+             "%sconv_dict_piano_%s.h5",
              "C:\\Users\\ruanb\\OneDrive\\Desktop\\Piano Transcripton\\Piano Transcription (C)\\data_persisted\\dictionaries\\",
-             piano_name,
-             1,
-             "L1",
-             "stft",
-             4096,
-             500,
-             "M");
+             piano_name);
 
     LoadDictionary(&dictionary, W_persisted_name);
 
@@ -297,3 +275,9 @@ void DestroyDictionary(Dictionary *dictionary)
         free(dictionary->data[i]);
     }
 }
+
+//Dictionary CreateDictionary(hsize_t shape[])
+//{
+
+//    Dictionary
+//}

@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
+enable_testing()
+
 project(Flickable VERSION 0.1 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -16,6 +18,7 @@ qt_add_executable(appFlickable
     main.cpp
     activations.c CMakeLists.txt dictionary.c dynamicarray.c evaluation.c full_transcription.c matrix.c activation_postprocessing.c spectrogram.c stft.c wav.c
     activations.h dictionary.h dynamicarray.h evaluation.h full_transcription.h main.cpp matrix.h activation_postprocessing.h spectrogram.h stft.h transcription.cpp transcription.h wav.h
+    midifile.h midifile.c domain_adaptation.c domain_adaptation.h
 )
 
 qt_add_qml_module(appFlickable
@@ -29,9 +32,9 @@ QML_FILES SongLoadingScreen.qml
 QML_FILES RecordingScreen.qml
 QML_FILES BackButton.qml
 QML_FILES DebugBox.qml
-QML_FILES
 RESOURCES images/buttons/back/white.png images/buttons/go/white.png images/line.png
 QML_FILES AudioDeviceSelector.qml
+
 
 )
 
@@ -47,19 +50,25 @@ set_target_properties(appFlickable PROPERTIES
 )
 
 find_package(HDF5 COMPONENTS C HL)
+include_directories(${HDF5_INCLUDE_DIRS} code/headers)
 
 
 find_package(OpenMP)
 
-include_directories(${HDF5_INCLUDE_DIRS} code/headers)
+#find_package(MKL CONFIG REQUIRED)
+#message(STATUS "${MKL_IMPORTED_TARGETS}") #Provides available list of targets based on input
 
+#target_compile_options(appFlickable PUBLIC $<TARGET_PROPERTY:MKL::MKL,INTERFACE_COMPILE_OPTIONS>)
+#target_include_directories(appFlickable PUBLIC $<TARGET_PROPERTY:MKL::MKL,INTERFACE_INCLUDE_DIRECTORIES>)
 
 target_link_libraries(appFlickable
-    PRIVATE Qt6::Quick ${HDF5_LIBRARIES} PUBLIC OpenMP::OpenMP_CXX Qt6::Concurrent Qt6::Multimedia
+    PRIVATE Qt6::Quick ${HDF5_LIBRARIES} PUBLIC OpenMP::OpenMP_CXX Qt6::Concurrent Qt6::Multimedia #$<LINK_ONLY:MKL::MKL>
 )
 
-
-
+add_test(NAME mytest COMMAND appFlickable)
+if(MKL_ENV)
+  set_tests_properties(mytest PROPERTIES ENVIRONMENT "${MKL_ENV}")
+endif()
 
 include(GNUInstallDirs)
 install(TARGETS appFlickable
@@ -67,3 +76,4 @@ install(TARGETS appFlickable
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
+

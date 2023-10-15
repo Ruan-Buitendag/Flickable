@@ -52,7 +52,7 @@ Matrix full_transcription_from_wav(const char* songFile, const char* transcripti
 //    const char *filename = "C:\\Users\\ruanb\\OneDrive\\Desktop\\Piano Transcripton\\Piano transcription\\MAPS\\AkPnBcht\\MUS\\MAPS_MUS-alb_se3_AkPnBcht.wav";
 
 
-    double time_limit = 2;
+    double time_limit = 10;
     int iterations = 20;
 
     WavFile wav = ReadWav(songFile);
@@ -147,13 +147,15 @@ Matrix full_transcription_from_array(DynamicArray *array, const char *transcript
     //    const char *filename = "C:\\Users\\ruanb\\OneDrive\\Desktop\\Piano Transcripton\\Piano transcription\\MAPS\\AkPnBcht\\MUS\\MAPS_MUS-alb_se3_AkPnBcht.wav";
 
 
-    double time_limit = 2;
+    double time_limit = 30;
     int iterations = 20;
 
     // TODO: duplicate code in getactivations
 
     Spectrogram spec = STFT(array, 4096, 882, 8192, time_limit, 44100);
     Spectrogram filtered = HardFilterSpectrogram(&spec, 1500);
+
+    SaveSpectrogramToCSV("raw spec.csv", &filtered);
 
     double delay = GetDelay(&filtered, 0.05);
 

@@ -8,15 +8,31 @@
 #include "wav.h"
 #include "stft.h"
 
+#include "string.h"
+
 const char * H_persisted_dir = "C:\\Users\\ruanb\\OneDrive\\Desktop\\Piano Transcripton\\Piano Transcription (C)\\data_persisted\\activations\\";
 
 double BetaDivergence(const Matrix *x, const Matrix *y, double beta) {
     Matrix d = CreateMatrix(x->rows, x->cols);
 
+//    printf("X dimensions: %d x %d\n", x->rows, x->cols);
+//    printf("Y dimensions: %d x %d\n", y->rows, y->cols);
+    fflush(stdout);
+
     double sum = 0;
 
     for (int i = 0; i < x->rows; i++) {
         for (int j = 0; j < x->cols; j++) {
+//            printf("x: %f, y: %f\n", x->array[i][j], y->array[i][j]);
+
+
+
+//            printf("y->array[i][j]: %f\n", y->array[i][j]);
+//            printf("x->array[i][j]: %f\n", x->array[i][j]);
+
+            fflush(stdout);
+
+
             if (y->array[i][j] < 1e-8) {
                 y->array[i][j] = 1e-8;
             }
@@ -24,12 +40,19 @@ double BetaDivergence(const Matrix *x, const Matrix *y, double beta) {
                 x->array[i][j] = 1e-8;
             }
 
+//            printf("aaaasaasss");
+
+            fflush(stdout);
+
+
+
             d.array[i][j] = x->array[i][j] * log(x->array[i][j] / y->array[i][j]) - x->array[i][j] + y->array[i][j];
 
 
-//            if (isnan(d.array[i][j])) {
+            if (isnan(d.array[i][j])) {
 //                printf("x: %f, y: %f\n", x->array[i][j], y->array[i][j]);
-//            }
+//                fflush(stdout);
+            }
 
             sum += d.array[i][j];
 
@@ -47,38 +70,49 @@ double Gaussian(double x, double y){
     return exp(exponent);
 }
 
-Matrix ComputeActivations(const Spectrogram *X, unsigned int iterations, double beta, double maximum_error,
-                          Dictionary *dictionary) {
+Matrix ComputeActivations(const Spectrogram *X, unsigned int iterations, double maximum_error,
+                          Dictionary *dictionary, const char * init) {
 
     unsigned int r = dictionary->shape[2];
     unsigned int ncol = X->matrix.cols;
     unsigned int T = dictionary->shape[0];
 
+    double beta = 1;
+
     Matrix activations = CreateMatrix(r, ncol);
 
-    for (int ii = 0; ii < activations.rows; ii++) {
-        for (int jj = 0; jj < activations.cols; jj++) {
-//            activations.array[ii][jj] = (double) rand() / (double) RAND_MAX;
-            double x = (double)ii /activations.rows * 14 - 7;
-//            double x = 0;
-            double y = (double)jj/activations.cols * 14 - 7;
-//            double y = 0;
-            activations.array[ii][jj] = Gaussian(x, y);
+    if(strcmp(init, "gauss") == 0){
+        for (int ii = 0; ii < activations.rows; ii++) {
+            for (int jj = 0; jj < activations.cols; jj++) {
+    //            activations.array[ii][jj] = (double) rand() / (double) RAND_MAX;
+                double x = (double)ii /activations.rows * 14 - 7;
+    //            double x = 0;
+                double y = (double)jj/activations.cols * 14 - 7;
+    //            double y = 0;
+                activations.array[ii][jj] = Gaussian(x, y);
+            }
+        }
+    }
+    else if (strcmp(init, "constant") == 0){
+        for(int i = 0; i < activations.rows; i++){
+            for(int j = 0; j < activations.cols; j++){
+                activations.array[i][j] = 0.5;
+            }
         }
     }
 
     SaveMatrixToCSV("Initialised H.csv", &activations);
 
-    if (beta != 1) {
-        fprintf(stderr, "ComputeActivations: beta != 1 not implemented yet\n");
-    }
-
     Matrix conved = ComputeConvolution(dictionary, &activations, T);
 
 
-    double error_int = BetaDivergence(&X->matrix, &conved, beta);
+    printf("Convolution done\n");
+    fflush(stdout);
+
+    double error_int = BetaDivergence(&X->matrix, &conved, 1);
 
     printf("ComputeActivations: Initial error = %f\n", error_int);
+    fflush(stdout);
 
     Matrix convolutions[T];
 
@@ -100,19 +134,19 @@ Matrix ComputeActivations(const Spectrogram *X, unsigned int iterations, double 
     Matrix denom_all_col = SumMatrices(convolutions, T);
 
 
-//    SaveMatrixToCSV("denom_all_col.csv", &denom_all_col);
+    SaveMatrixToCSV("denom_all_col.csv", &denom_all_col);
 
 
     for (int i = 0; i < T; i++) {
         DestroyMatrix(&convolutions[i]);
     }
 
-    Matrix denoms_cropped_for_end = CreateMatrix(T, 88);
+    Matrix denoms_cropped_for_end = CreateMatrix(T, r);
 
 
     for (int j = 1; j < T + 1; j++) {
 
-        Matrix temp = CreateMatrix(T, 88);
+        Matrix temp = CreateMatrix(T, r);
 
         for (int a = 0; a < j; a++) {
             Spectrogram a_spec = GetSpectrogramFromDictionary(dictionary, 0, a);
@@ -126,7 +160,7 @@ Matrix ComputeActivations(const Spectrogram *X, unsigned int iterations, double 
 
         }
 
-        for (int cc = 0; cc < 88; cc++) {
+        for (int cc = 0; cc < r; cc++) {
             for (int rr = 0; rr < j; rr++) {
                 denoms_cropped_for_end.array[j - 1][cc] += temp.array[rr][cc];
             }
@@ -135,16 +169,16 @@ Matrix ComputeActivations(const Spectrogram *X, unsigned int iterations, double 
         DestroyMatrix(&temp);
     }
 
-//    SaveMatrixToCSV("denoms_cropped_for_end.csv", &denoms_cropped_for_end);
+    SaveMatrixToCSV("denoms_cropped_for_end.csv", &denoms_cropped_for_end);
 
 
     unsigned int iteration = 0;
-    double obj, obj_prev = 0;
+    double obj, obj_prev = error_int;
 
     while (iteration < iterations) {
         Matrix A = ComputeConvolution(dictionary, &activations, T);
 
-//        SaveMatrixToCSV("A.csv", &A);
+        SaveMatrixToCSV("A.csv", &A);
 
       // TODO: optimize the padding
 
@@ -163,7 +197,7 @@ Matrix ComputeActivations(const Spectrogram *X, unsigned int iterations, double 
             }
         }
 
-//        SaveMatrixToCSV("X_hadamard_A.csv", &A);
+        SaveMatrixToCSV("X_hadamard_A.csv", &A);
 
         Matrix X_hadamard_A_padded = CreateMatrix(A.rows, A.cols + T);
 
@@ -175,7 +209,7 @@ Matrix ComputeActivations(const Spectrogram *X, unsigned int iterations, double 
             }
         }
 
-//        SaveMatrixToCSV("X_hadamard_A_padded.csv", &X_hadamard_A_padded);
+        SaveMatrixToCSV("X_hadamard_A_padded.csv", &X_hadamard_A_padded);
 
 
         Matrix num = CreateMatrix(r, A.cols);
@@ -211,7 +245,7 @@ Matrix ComputeActivations(const Spectrogram *X, unsigned int iterations, double 
         DestroyMatrix(&X_hadamard_A_padded);
 
 
-//        SaveMatrixToCSV("num.csv", &num);
+        SaveMatrixToCSV("num.csv", &num);
 
 //#pragma omp parallel for
 
@@ -234,7 +268,7 @@ Matrix ComputeActivations(const Spectrogram *X, unsigned int iterations, double 
             }
         }
 
-//        SaveMatrixToCSV("H2.csv", &activations);
+        SaveMatrixToCSV("H2.csv", &activations);
 
         DestroyMatrix(&num);
         DestroyMatrix(&conved);
@@ -244,10 +278,16 @@ Matrix ComputeActivations(const Spectrogram *X, unsigned int iterations, double 
         obj = BetaDivergence(&X->matrix, &conved, beta);
 
         printf("ComputeActivations: Iteration %d, obj = %f\n", iteration, obj);
+        fflush(stdout);
 
-        if ((fabs(obj - obj_prev) / error_int) < maximum_error) {
-            printf("ComputeActivations: Converged sufficiently\n");
-//            break;
+//        if ((fabs(obj - obj_prev) / error_int) < maximum_error) {
+//            printf("ComputeActivations: Converged sufficiently\n");
+////            break;
+//        }
+
+        if (fabs(obj > obj_prev)) {
+            printf("ComputeActivations: Diverged\n");
+            break;
         }
 
         obj_prev = obj;
@@ -266,14 +306,30 @@ Matrix ComputeConvolution(const Dictionary *dictionary, const Matrix *matrix2, u
     for (int i = 0; i < t; i++) {
         Matrix tspec = GetMatrixFromDictionary(dictionary, 0, i);
 
+//        printf("Got matrix\n");
+//        fflush(stdout);
+
         Matrix shifted = ShiftMatrix(matrix2, i);
+
+//        printf("Shifted matrix\n");
+        fflush(stdout);
+
         convolutions[i] = MatrixMultiply(&tspec, &shifted);
+
+//        printf("Multiplied matrices\n");
+        fflush(stdout);
 
         DestroyMatrix(&tspec);
         DestroyMatrix(&shifted);
     }
 
+//    printf("Summing matrices\n");
+    fflush(stdout);
+
     Matrix conv_sum = SumMatricesAlongAxis(convolutions, t, 0);
+
+//    printf("Summed matrices\n");
+    fflush(stdout);
 
     for (int i = 0; i < t; i++) {
         DestroyMatrix(&convolutions[i]);
@@ -301,7 +357,7 @@ Matrix GetActivationsFromFile(const char *filename, Dictionary *dictionary, doub
 
     DestroySpectrogram(&spec);
 
-    Matrix activations = ComputeActivations(&filtered, iterations, 1, 0.1, dictionary);
+    Matrix activations = ComputeActivations(&filtered, iterations, 0.1, dictionary, "gauss");
 
     char H_persisted_name[1000];
 
@@ -311,7 +367,6 @@ Matrix GetActivationsFromFile(const char *filename, Dictionary *dictionary, doub
 
     return activations;
 }
-
 
 
 Matrix GetActivations(const char *filename, Dictionary* dictionary, double time_limit, int iterations, bool recompute) {
@@ -345,7 +400,7 @@ Matrix GetActivationsFromArray(DynamicArray *array, Dictionary *dictionary, doub
 
     DestroySpectrogram(&spec);
 
-    Matrix activations = ComputeActivations(&filtered, iterations, 1, 0.1, dictionary);
+    Matrix activations = ComputeActivations(&filtered, iterations, 0.1, dictionary, "gauss");
 
     return activations;
 }

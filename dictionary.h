@@ -15,6 +15,8 @@ typedef struct DictionaryStruct {
     double*** data;
 } Dictionary;
 
+Dictionary CreateDictionary(hsize_t shape[3]);
+
 void LoadDictionary(Dictionary *dictionary, char *filename);
 void AllocateDictionaryMemory(Dictionary* dictionary);
 void PrintDictionary(Dictionary* dictionary);

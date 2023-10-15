@@ -14,11 +14,15 @@
 #include <QBuffer>
 #include <QDataStream>
 #include <QMediaDevices>
+#include <QAudioSink>
 
 extern "C" {
 #include "matrix.h"
 #include "dictionary.h"
+#include "domain_adaptation.h"
 }
+
+
 
 class Transcription : public QObject
 {
@@ -30,6 +34,12 @@ public:
     Q_INVOKABLE void startLiveTranscription();
     Q_INVOKABLE void startRecording();
     Q_INVOKABLE void stopRecording();
+
+    Q_INVOKABLE void playMidiFile();
+
+    Q_INVOKABLE void playRecording();
+
+    void pauseRecording();
 
 
     void liveTranscription();
@@ -66,13 +76,21 @@ private:
 
     QAudioDevice m_audioInputDevice;
     QAudioSource* m_audioInputSource;
+
+    QAudioDevice m_audioOutputDevice;
+    QAudioSink* m_audioOutputSink;
+
     QBuffer m_audioInputBuffer;
 
     Dictionary m_dictionary;
 
+
+    void notesToMidiFile(Matrix estimated_notes, const char* midiFile);
     QVariantList notesToVariantList(Matrix estimated_notes);
 
 
+    const char * path_fluidsynth_exe = "C:/tools/fluidsynth/bin/fluidsynth.exe";
+    const char * path_soundfont = "C:/Users/ruanb/OneDrive/Documents/Flickable/soundfonts/yamaha_piano.sf2";
 
 
 };
