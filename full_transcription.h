@@ -10,7 +10,11 @@ Matrix full_transcription_from_wav(const char* songFile, const char* transcripti
 
 Matrix full_transcription_from_array(DynamicArray * array, const char* transcriptionFile, Dictionary* dictionary);
 
-//Matrix transcribe(DynamicArray * array, Dictionary* dictionary);
+Matrix transcribe(Spectrogram* songSpectrogram, Dictionary* dictionary);
+
+Matrix transcribe_array(DynamicArray* array, const char * transcriptionFile);
+
+Matrix transcribe_wav(const char * wavFile, const char * transcriptionFile);
 
 void test();
 

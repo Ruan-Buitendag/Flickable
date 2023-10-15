@@ -274,7 +274,7 @@ onset_detected: ;
 
 
 
-    Matrix weights_activation = ComputeActivations(&note_spec, 15, 0.1, &single_note_dictionary, "constant");
+    Matrix weights_activation = ComputeActivations(&note_spec, 15, &single_note_dictionary, "constant");
 
     // get means along axis 1
 

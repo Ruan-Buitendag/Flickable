@@ -285,6 +285,19 @@ Matrix LoadRefsFromFile(const char *filename, double time_limit) {
         refs.array[row][1] = pitch;
     }
 
+    double ref_min = 99;
+
+    for (int i = 0; i < refs.rows; i++) {
+        if (refs.array[i][0] < ref_min) {
+            ref_min = refs.array[i][0];
+        }
+    }
+
+    for (int i = 0; i < refs.rows; i++) {
+        refs.array[i][0] -= ref_min;
+    }
+
+
     return refs;
 }
 

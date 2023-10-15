@@ -70,7 +70,7 @@ double Gaussian(double x, double y){
     return exp(exponent);
 }
 
-Matrix ComputeActivations(const Spectrogram *X, unsigned int iterations, double maximum_error,
+Matrix ComputeActivations(const Spectrogram *X, unsigned int iterations,
                           Dictionary *dictionary, const char * init) {
 
     unsigned int r = dictionary->shape[2];
@@ -343,64 +343,66 @@ void TestActivations() {
 
 }
 
-Matrix GetActivationsFromFile(const char *filename, Dictionary *dictionary, double time_limit, int iterations) {
-    WavFile wav = ReadWav(filename);
+//Matrix GetActivationsFromFile(const char *filename, Dictionary *dictionary, double time_limit, int iterations) {
+//    WavFile wav = ReadWav(filename);
 
-    DynamicArray mono = StereoToMono(&wav, "average");
+//    DynamicArray mono = StereoToMono(&wav, "average");
 
-    Spectrogram spec = STFT(&mono, 4096, 882, 8192, time_limit, 44100);
-    Spectrogram filtered = HardFilterSpectrogram(&spec, 1500);
+//    Spectrogram spec = STFT(&mono, 4096, 882, 8192, time_limit, 44100);
+//    Spectrogram filtered = HardFilterSpectrogram(&spec, 1500);
 
-//    Dictionary aaaa = HardFilterSpectrograms(dictionary, 1500);
+////    Dictionary aaaa = HardFilterSpectrograms(dictionary, 1500);
 
-//    NormaliseDictionary(&aaaa);
+////    NormaliseDictionary(&aaaa);
 
-    DestroySpectrogram(&spec);
+//    DestroySpectrogram(&spec);
 
-    Matrix activations = ComputeActivations(&filtered, iterations, 0.1, dictionary, "gauss");
+//    Matrix activations = ComputeActivations(&filtered, iterations, dictionary, "gauss");
 
-    char H_persisted_name[1000];
+//    char H_persisted_name[1000];
 
-    snprintf(H_persisted_name, sizeof(H_persisted_name), "%s%s_H_%d_iterations_limited_to_%lfs_.csv", H_persisted_dir, filename, iterations, time_limit);
+//    snprintf(H_persisted_name, sizeof(H_persisted_name), "%s%s_H_%d_iterations_limited_to_%lfs_.csv", H_persisted_dir, filename, iterations, time_limit);
 
-    SaveMatrixToCSV(H_persisted_name, &activations);
+//    SaveMatrixToCSV(H_persisted_name, &activations);
 
-    return activations;
-}
-
-
-Matrix GetActivations(const char *filename, Dictionary* dictionary, double time_limit, int iterations, bool recompute) {
-//    Dictionary dict = GetDictionary("AkPnBcht");
-
-//    Dictionary dict = GetDictionary("AkPnBsdf");
+//    return activations;
+//}
 
 
-    char H_persisted_name[1000];
+//Matrix GetActivations(const char *filename, Dictionary* dictionary, double time_limit, int iterations, bool recompute) {
+////    Dictionary dict = GetDictionary("AkPnBcht");
 
-    snprintf(H_persisted_name, sizeof(H_persisted_name), "%s%s_H_%d_iterations_limited_to_%lfs_.csv", H_persisted_dir, filename, iterations, time_limit);
-
-    Matrix activations = LoadMatrixFromCSV(H_persisted_name);
-
-    if ((activations.rows == 0 && activations.cols == 0) || recompute) {
-        activations = GetActivationsFromFile(filename, dictionary, time_limit, iterations);
-    }
-
-    return activations;
-}
+////    Dictionary dict = GetDictionary("AkPnBsdf");
 
 
-Matrix GetActivationsFromArray(DynamicArray *array, Dictionary *dictionary, double time_limit, int iterations)
-{
-    Spectrogram spec = STFT(array, 4096, 882, 8192, time_limit, 44100);
-    Spectrogram filtered = HardFilterSpectrogram(&spec, 1500);
+//    char H_persisted_name[1000];
 
-//    Dictionary aaaa = HardFilterSpectrograms(dictionary, 1500);
+//    snprintf(H_persisted_name, sizeof(H_persisted_name), "%s%s_H_%d_iterations_limited_to_%lfs_.csv", H_persisted_dir, filename, iterations, time_limit);
 
-//    NormaliseDictionary(&aaaa);
+//    Matrix activations = LoadMatrixFromCSV(H_persisted_name);
 
-    DestroySpectrogram(&spec);
+//    if ((activations.rows == 0 && activations.cols == 0) || recompute) {
+//        activations = GetActivationsFromFile(filename, dictionary, time_limit, iterations);
+//    }
 
-    Matrix activations = ComputeActivations(&filtered, iterations, 0.1, dictionary, "gauss");
+//    return activations;
+//}
 
-    return activations;
-}
+
+//Matrix GetActivationsFromArray(DynamicArray *array, Dictionary *dictionary, double time_limit, int iterations)
+//{
+//    Spectrogram spec = STFT(array, 4096, 882, 8192, time_limit, 44100);
+//    Spectrogram filtered = HardFilterSpectrogram(&spec, 1500);
+
+////    Dictionary aaaa = HardFilterSpectrograms(dictionary, 1500);
+
+////    NormaliseDictionary(&aaaa);
+
+//    DestroySpectrogram(&spec);
+
+//    Matrix activations = ComputeActivations(&filtered, iterations, dictionary, "gauss");
+
+//    return activations;
+//}
+
+

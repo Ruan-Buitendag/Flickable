@@ -174,30 +174,11 @@ void Transcription::liveTranscription()
         counter++;
     }
 
-    for(int i = 0; i < 10; i++)
-    {
-        printf("%f\n", array.array[i]);
-    }
-
-    fflush(stdout);
-
-    DynamicArray asshole = CreateDynamicArray(array.size);
-    CopyDynamicArray(&asshole, &array);
-
-    fflush(stdout);
-
     std::string qTranscriptionFile = m_transcriptionFile.toLocalFile().toStdString();
     const char* transcriptionFilename = qTranscriptionFile.c_str();
 
-    Dictionary aaa = GetBestDictionaryForArray(&asshole);
 
-    aaa = HardFilterSpectrograms(&aaa, 1500);
-    NormaliseDictionary(&aaa);
-
-    m_dictionary = aaa;
-
-
-    qDebug() << "Dictionary dims: " << m_dictionary.shape[0] << ", " << m_dictionary.shape[1] << ", " << m_dictionary.shape[2];
+//    qDebug() << "Dictionary dims: " << m_dictionary.shape[0] << ", " << m_dictionary.shape[1] << ", " << m_dictionary.shape[2];
 
     // print array
     for(int i = 0; i < 10; i++)
@@ -208,7 +189,9 @@ void Transcription::liveTranscription()
     fflush(stdout);
 
 
-    Matrix estimated_notes = full_transcription_from_array(&array, transcriptionFilename, &m_dictionary);
+//    Matrix estimated_notes = full_transcription_from_array(&array, transcriptionFilename, &m_dictionary);
+
+    Matrix estimated_notes = transcribe_array(&array, transcriptionFilename);
 
     QVariantList list = notesToVariantList(estimated_notes);
 
@@ -239,8 +222,8 @@ QVariantList Transcription::notesToVariantList(Matrix estimated_notes)
 void Transcription::recordedTranscription()
 {
 
-    printf("Dictionary dims: %d, %d, %d\n", m_dictionary.shape[0], m_dictionary.shape[1], m_dictionary.shape[2]);
-    fflush(stdout);
+//    printf("Dictionary dims: %d, %d, %d\n", m_dictionary.shape[0], m_dictionary.shape[1], m_dictionary.shape[2]);
+//    fflush(stdout);
 
 
     std::string qSongName = m_songName.toLocalFile().toStdString();
@@ -249,20 +232,22 @@ void Transcription::recordedTranscription()
     const char* waveFilename = qSongName.c_str();
     const char* transcriptionFilename = qTranscriptionFile.c_str();
 
-    qDebug() << waveFilename;
-    qDebug() << transcriptionFilename;
+//    qDebug() << waveFilename;
+//    qDebug() << transcriptionFilename;
 
-    Dictionary tempdict = GetBestDictionaryForRecording(waveFilename);
+//    Dictionary tempdict = GetBestDictionaryForRecording(waveFilename);
 
 //    Dictionary tempdict = GetDictionary("AkPnBcht");
 
-    tempdict = HardFilterSpectrograms(&tempdict, 1500);
+//    tempdict = HardFilterSpectrograms(&tempdict, 1500);
 
-    NormaliseDictionary(&tempdict);
+//    NormaliseDictionary(&tempdict);
 
-    m_dictionary = tempdict;
+//    m_dictionary = tempdict;
 
-    Matrix estimated_notes = full_transcription_from_wav(waveFilename, transcriptionFilename, &m_dictionary);
+//    Matrix estimated_notes = full_transcription_from_wav(waveFilename, transcriptionFilename, &m_dictionary);
+
+    Matrix estimated_notes = transcribe_wav(waveFilename, transcriptionFilename);
 
     notesToMidiFile(estimated_notes, "transcription_output.mid");
     playMidiFile();
