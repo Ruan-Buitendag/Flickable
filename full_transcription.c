@@ -231,15 +231,13 @@ void test() {
 //    return finalNotes;
 //}
 
-Matrix transcribe(Spectrogram* songSpectrogram, Dictionary *dictionary)
+Matrix transcribe(Spectrogram* songSpectrogram, Dictionary *dictionary, int transcriptionIterations)
 {
     clock_t start_time, end_time;
 
     start_time = clock();
 
-    int iterations = 20;
-
-    Matrix activations = ComputeActivations(songSpectrogram, iterations,  dictionary, "gauss");
+    Matrix activations = ComputeActivations(songSpectrogram, transcriptionIterations,  dictionary, "gauss");
 
     end_time = clock();
 
@@ -250,6 +248,8 @@ Matrix transcribe(Spectrogram* songSpectrogram, Dictionary *dictionary)
     double threshold = GetThreshold(&activations);
 
     Matrix notes = TranscribeNotesFromActivations(&activations, threshold, 0.02);
+
+    DestroyMatrix(&activations);
 
     int finalIndex = 0;
 
@@ -273,6 +273,8 @@ Matrix transcribe(Spectrogram* songSpectrogram, Dictionary *dictionary)
         finalNotes.array[i][1] = notes.array[i][1];
     }
 
+    DestroyMatrix(&notes);
+
 
     for (int i = 0; i < finalIndex; i++) {
         finalNotes.array[i][0] -= est_min;
@@ -283,13 +285,17 @@ Matrix transcribe(Spectrogram* songSpectrogram, Dictionary *dictionary)
     return finalNotes;
 }
 
-Matrix transcribe_array(DynamicArray *array, const char * transcriptionFile)
+Matrix transcribe_array(DynamicArray *array, const char * transcriptionFile, int transcriptionIterations)
 {
 
     double time_limit = 10;
 
     Spectrogram spec = STFT(array, 4096, 882, 8192, time_limit, 44100);
     Spectrogram filtered = HardFilterSpectrogram(&spec, 1500);
+
+    DestroySpectrogram(&spec);
+
+    SaveSpectrogramToCSV("spectrogram.csv", &filtered);
 
 
     DynamicArray arrayCopy = CreateDynamicArray(array->size);
@@ -298,6 +304,8 @@ Matrix transcribe_array(DynamicArray *array, const char * transcriptionFile)
 
     Dictionary dictionary = GetBestDictionaryForArray(&arrayCopy);
 
+    DestroyDynamicArray(&arrayCopy);
+
     dictionary = HardFilterSpectrograms(&dictionary, 1500);
     NormaliseDictionary(&dictionary);
 
@@ -305,26 +313,34 @@ Matrix transcribe_array(DynamicArray *array, const char * transcriptionFile)
 
     printf("delay: %f\n", delay);
 
-    Matrix estimated_notes = transcribe(&filtered, &dictionary);
+    Matrix estimated_notes = transcribe(&filtered, &dictionary, transcriptionIterations);
+
+    DestroySpectrogram(&filtered);
+    DestroyDictionary(&dictionary);
 
     if(strcmp(transcriptionFile, "") != 0)
     {
         Matrix reference_notes = LoadRefsFromFile(transcriptionFile, time_limit - delay);
 
         EvaluateTranscription(&reference_notes, &estimated_notes);
+
+        DestroyMatrix(&reference_notes);
     }
 
     return estimated_notes;
 }
 
-Matrix transcribe_wav(const char *wavFile, const char *transcriptionFile)
+Matrix transcribe_wav(const char *wavFile, const char *transcriptionFile, int transcriptionIterations)
 {
     WavFile wav = ReadWav(wavFile);
 
     DynamicArray mono = StereoToMono(&wav, "average");
 //    NormaliseChannel(&mono);
 
-    Matrix estimated_notes = transcribe_array(&mono, transcriptionFile);
+
+    Matrix estimated_notes = transcribe_array(&mono, transcriptionFile, transcriptionIterations);
+
+    DestroyDynamicArray(&mono);
 
     return estimated_notes;
 }

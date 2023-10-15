@@ -148,6 +148,43 @@ void LoadSingleNoteDictionary(Dictionary* single_note_dictionary, char **piano_W
     }
 }
 
+int GetSingleNoteFromSpec(Spectrogram* note_spec)
+{
+    DynamicArray bins_summed_over_time = CreateDynamicArray(note_spec->matrix.rows);
+
+    for(int row = 0; row < note_spec->matrix.rows; row++){
+        double sum = 0;
+
+        for(int col = 0; col < note_spec->matrix.cols; col++){
+            sum += note_spec->matrix.array[row][col];
+        }
+
+        bins_summed_over_time.array[row] = sum;
+    }
+
+    int findamental_bin = 0;
+
+    for(int row = 0; row < note_spec->matrix.rows; row++){
+        if(bins_summed_over_time.array[row] > bins_summed_over_time.array[findamental_bin]){
+            findamental_bin = row;
+        }
+    }
+
+    DestroyDynamicArray(&bins_summed_over_time);
+
+    printf("Fundamental bin established: %d\n", findamental_bin);
+
+    double fundamental_frequency = findamental_bin * 22050 / 4096.0;
+
+    printf("Fundamental frequency established: %f\n", fundamental_frequency);
+
+    int midi_note = round(69 + 12 * log2(fundamental_frequency / 440.0));
+
+    printf("Midi note established: %d\n", midi_note);
+
+    return midi_note;
+}
+
 DynamicArray CalculateTemplateWeights(Spectrogram* spectrogram, int num_iterations){
     Matrix differences = CreateMatrix(spectrogram->matrix.rows, spectrogram->matrix.cols-1);
 
@@ -166,7 +203,7 @@ DynamicArray CalculateTemplateWeights(Spectrogram* spectrogram, int num_iteratio
     }
 //onset_not_detected: ;
 
-    fprintf(stderr, "No onset detected, threshold likely too high\n");
+    fprintf(stderr, "No onset detected during dictionary adaptation, threshold likely too high\n");
     fflush(stderr);
     exit(1);
 
@@ -193,37 +230,7 @@ onset_detected: ;
     SaveSpectrogramToCSV("note_spec.csv", &note_spec);
 
 
-    DynamicArray bins_summed_over_time = CreateDynamicArray(spectrogram->matrix.rows);
-
-    for(int row = 0; row < spectrogram->matrix.rows; row++){
-        double sum = 0;
-
-        for(int col = 0; col < note_spec.matrix.cols; col++){
-            sum += note_spec.matrix.array[row][col];
-        }
-
-        bins_summed_over_time.array[row] = sum;
-    }
-
-    int findamental_bin = 0;
-
-    for(int row = 0; row < spectrogram->matrix.rows; row++){
-        if(bins_summed_over_time.array[row] > bins_summed_over_time.array[findamental_bin]){
-            findamental_bin = row;
-        }
-    }
-
-    DestroyDynamicArray(&bins_summed_over_time);
-
-    printf("Fundamental bin established: %d\n", findamental_bin);
-
-    double fundamental_frequency = findamental_bin * 22050 / 4096.0;
-
-    printf("Fundamental frequency established: %f\n", fundamental_frequency);
-
-    int midi_note = round(69 + 12 * log2(fundamental_frequency / 440.0));
-
-    printf("Midi note established: %d\n", midi_note);
+    int midi_note = GetSingleNoteFromSpec(&note_spec);
 
 
     char *piano_W[8] = {"AkPnBcht", "AkPnBsdf", "AkPnCGdD", "AkPnStgb", "ENSTDkCl", "ENSTDkAm", "SptkBGAm", "StbgTGd2"};
@@ -253,25 +260,6 @@ onset_detected: ;
 
     printf("Dimensions: %d %d %d\n", single_note_dictionary.shape[0], single_note_dictionary.shape[1], single_note_dictionary.shape[2]);
     fflush(stdout);
-
-
-//    Spectrogram ass = note_spec;
-
-//    printf("Dictionary loaded\n");
-//    fflush(stdout);
-
-//    SaveSpectrogramToCSV("2nd note spec.csv", &ass);
-
-//    for(int r = 0; r < single_note_dictionary.shape[2]; r++){
-//        Spectrogram aa = GetSpectrogramFromDictionary(&single_note_dictionary, 2, r);
-
-//        char poes[256];
-
-//        sprintf(poes, "spec %d.csv", r);
-
-//        SaveSpectrogramToCSV(poes, &aa);
-//    }
-
 
 
     Matrix weights_activation = ComputeActivations(&note_spec, 15, &single_note_dictionary, "constant");
@@ -322,36 +310,36 @@ onset_detected: ;
 
 void DomainAdaptationTest()
 {
-    const char* piano_W[] = {"AkPnBcht", "AkPnBsdf", "AkPnCGdD", "AkPnStgb", "ENSTDkCl", "ENSTDkAm", "SptkBGAm", "StbgTGd2"};
+//    const char* piano_W[] = {"AkPnBcht", "AkPnBsdf", "AkPnCGdD", "AkPnStgb", "ENSTDkCl", "ENSTDkAm", "SptkBGAm", "StbgTGd2"};
 
-//    const char *filename = "MAPS_MUS-alb_se3_AkPnBcht.wav";
-        const char *filename = "C:\\Users\\ruanb\\OneDrive\\Desktop\\Piano Transcripton\\Piano transcription\\MAPS\\AkPnBcht\\MUS\\MAPS_MUS-alb_se3_AkPnBcht.wav";
+////    const char *filename = "MAPS_MUS-alb_se3_AkPnBcht.wav";
+//        const char *filename = "C:\\Users\\ruanb\\OneDrive\\Desktop\\Piano Transcripton\\Piano transcription\\MAPS\\AkPnBcht\\MUS\\MAPS_MUS-alb_se3_AkPnBcht.wav";
 
-    double time_limit = 10;
-    int iterations = 10;
+//    double time_limit = 10;
+//    int iterations = 10;
 
-    WavFile wav = ReadWav(filename);
+//    WavFile wav = ReadWav(filename);
 
-    DynamicArray mono = StereoToMono(&wav, "average");
+//    DynamicArray mono = StereoToMono(&wav, "average");
 
-    Spectrogram spec = STFT(&mono, 4096, 882, 8192, time_limit, 44100);
+//    Spectrogram spec = STFT(&mono, 4096, 882, 8192, time_limit, 44100);
 
-    printf("Starting template weight calc\n");
+//    printf("Starting template weight calc\n");
 
-    Dictionary dictionaries[5];
+//    Dictionary dictionaries[5];
 
-    for(int i = 0; i < 5; i++){
-        dictionaries[i] = GetDictionary(piano_W[i]);
-    }
+//    for(int i = 0; i < 5; i++){
+//        dictionaries[i] = GetDictionary(piano_W[i]);
+//    }
 
-    DynamicArray weights = CalculateTemplateWeights(&spec, iterations);
+//    DynamicArray weights = CalculateTemplateWeights(&spec, iterations);
 
-    printf("Template weight calc done\n");
+//    printf("Template weight calc done\n");
 
-    Dictionary adapted_dictionary = AdaptDictionary( dictionaries, &weights);
+//    Dictionary adapted_dictionary = AdaptDictionary( dictionaries, &weights);
 
-    printf("Adapted dimensions: %d %d %d\n", adapted_dictionary.shape[0], adapted_dictionary.shape[1], adapted_dictionary.shape[2]);
-    fflush(stdout);
+//    printf("Adapted dimensions: %d %d %d\n", adapted_dictionary.shape[0], adapted_dictionary.shape[1], adapted_dictionary.shape[2]);
+//    fflush(stdout);
 
 }
 
@@ -381,47 +369,47 @@ Dictionary AdaptDictionary(Dictionary* dictionaries, DynamicArray* weights){
     return adapted_dictionary;
 }
 
-Dictionary GetBestDictionaryForRecording(const char *filename)
-{
-    const char* piano_W[] = {"AkPnBcht", "AkPnBsdf", "AkPnCGdD", "AkPnStgb", "ENSTDkCl", "ENSTDkAm", "SptkBGAm", "StbgTGd2"};
+//Dictionary GetBestDictionaryForRecording(const char *filename)
+//{
+//    const char* piano_W[] = {"AkPnBcht", "AkPnBsdf", "AkPnCGdD", "AkPnStgb", "ENSTDkCl", "ENSTDkAm", "SptkBGAm", "StbgTGd2"};
 
-    //    const char *filename = "MAPS_MUS-alb_se3_AkPnBcht.wav";
+//    //    const char *filename = "MAPS_MUS-alb_se3_AkPnBcht.wav";
 
-    double time_limit = 10;
-    int iterations = 10;
+//    double time_limit = 10;
+//    int iterations = 10;
 
-    WavFile wav = ReadWav(filename);
+//    WavFile wav = ReadWav(filename);
 
 
-    DynamicArray mono = StereoToMono(&wav, "average");
+//    DynamicArray mono = StereoToMono(&wav, "average");
 
-    Spectrogram spec = STFT(&mono, 4096, 882, 8192, time_limit, 44100);
-    spec =  HardFilterSpectrogram(&spec, 2000);
+//    Spectrogram spec = STFT(&mono, 4096, 882, 8192, time_limit, 44100);
+//    spec =  HardFilterSpectrogram(&spec, 2000);
 
-    Dictionary dictionaries[5];
+//    Dictionary dictionaries[5];
 
-    for(int i = 0; i < 5; i++){
-        dictionaries[i] = GetDictionary(piano_W[i]);
-    }
+//    for(int i = 0; i < 5; i++){
+//        dictionaries[i] = GetDictionary(piano_W[i]);
+//    }
 
-    DynamicArray weights = CalculateTemplateWeights(&spec, iterations);
+//    DynamicArray weights = CalculateTemplateWeights(&spec, iterations);
 
-    printf("Template weight calc done\n");
+//    printf("Template weight calc done\n");
 
-    Dictionary adapted_dictionary = AdaptDictionary( dictionaries, &weights);
+//    Dictionary adapted_dictionary = AdaptDictionary( dictionaries, &weights);
 
-    printf("Adapted dimensions: %d %d %d\n", adapted_dictionary.shape[0], adapted_dictionary.shape[1], adapted_dictionary.shape[2]);
-    fflush(stdout);
+//    printf("Adapted dimensions: %d %d %d\n", adapted_dictionary.shape[0], adapted_dictionary.shape[1], adapted_dictionary.shape[2]);
+//    fflush(stdout);
 
-    DestroyDynamicArray(&mono);
-    DestroySpectrogram(&spec);
+//    DestroyDynamicArray(&mono);
+//    DestroySpectrogram(&spec);
 
-    for(int i = 0; i < 5; i++){
-        DestroyDictionary(&dictionaries[i]);
-    }
+//    for(int i = 0; i < 5; i++){
+//        DestroyDictionary(&dictionaries[i]);
+//    }
 
-    return adapted_dictionary;
-}
+//    return adapted_dictionary;
+//}
 
 Dictionary GetBestDictionaryForArray(DynamicArray *array)
 {

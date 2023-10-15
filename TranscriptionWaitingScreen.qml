@@ -42,6 +42,9 @@ Rectangle {
 
             running: true
 
+            //            color: "#ffffff"
+            palette.dark: "#ffffff"
+
             anchors.horizontalCenter: parent.horizontalCenter
         }
     }

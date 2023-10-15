@@ -19,7 +19,7 @@
 extern "C" {
 #include "matrix.h"
 #include "dictionary.h"
-#include "domain_adaptation.h"
+#include "dynamicarray.h"
 }
 
 
@@ -36,7 +36,6 @@ public:
     Q_INVOKABLE void stopRecording();
 
     Q_INVOKABLE void playMidiFile();
-
     Q_INVOKABLE void playRecording();
 
     void pauseRecording();
@@ -49,6 +48,7 @@ public:
     Q_PROPERTY(QUrl songName READ songName WRITE setSongName NOTIFY songNameChanged FINAL);
     Q_PROPERTY(QUrl transcriptionFile READ transcriptionFile WRITE setTranscriptionFile NOTIFY transcriptionFileChanged FINAL);
     Q_PROPERTY(QAudioDevice audioInputDevice READ audioInputDevice WRITE setAudioInputDevice NOTIFY audioInputDeviceChanged FINAL);
+    Q_PROPERTY(int transcriptionIterations READ transcriptionIterations WRITE setTranscriptionIterations NOTIFY transcriptionIterationsChanged FINAL);
 
     QUrl songName() const;
     void setSongName(const QUrl &songName);
@@ -63,11 +63,15 @@ public:
     QAudioDevice audioInputDevice() const;
     void setAudioInputDevice(const QAudioDevice &audioInputDevice);
 
+    int transcriptionIterations() const;
+    void setTranscriptionIterations(const int &transcriptionIterations);
+
 signals:
     void songNameChanged(QUrl songName);
     void notesChanged(QVariantList notes);
     void transcriptionFileChanged(QUrl transcriptionFile);
     void audioInputDeviceChanged(QAudioDevice audioInputDevice);
+    void transcriptionIterationsChanged(int transcriptionIterations);
 
 private:
     QUrl m_songName;
@@ -82,7 +86,10 @@ private:
 
     QBuffer m_audioInputBuffer;
 
-    Dictionary m_dictionary;
+    int m_transcriptionIterations;
+
+
+    DynamicArray GetAudioFromBuffer();
 
 
     void notesToMidiFile(Matrix estimated_notes, const char* midiFile);

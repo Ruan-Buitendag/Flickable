@@ -34,6 +34,7 @@ QML_FILES BackButton.qml
 QML_FILES DebugBox.qml
 RESOURCES images/buttons/back/white.png images/buttons/go/white.png images/line.png
 QML_FILES AudioDeviceSelector.qml
+QML_FILES IterationSelector.qml
 
 
 )

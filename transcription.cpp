@@ -10,8 +10,6 @@ extern "C" {
 
 #include <Windows.h>
 
-
-
 Transcription::Transcription(QObject *parent)
     : QObject{parent}
 {
@@ -42,6 +40,8 @@ Transcription::Transcription(QObject *parent)
     }
 
     m_audioOutputSink = new QAudioSink(m_audioOutputDevice, format);
+
+    m_transcriptionIterations = 10;
 
 //    m_dictionary = LoadTranscriptionDictionary();
 
@@ -132,72 +132,43 @@ void Transcription::liveTranscription()
 {
     qDebug() << "Starting live transcription";
 
-    m_audioInputBuffer.seek(0);
-
-    QDataStream stream(&m_audioInputBuffer);
-
-    int counter = 0;
-
-    double max = 0;
-
-    while(!stream.atEnd()) {
-        qint16 value;
-        stream >> value;
-
-        if(value > max)
-        {
-            max = value;
-        }
-
-        counter++;
-    }
-
-    DynamicArray array = CreateDynamicArray(counter);
+//    QString outputFilePath = "output.raw";
 
     m_audioInputBuffer.seek(0);
 
-    counter = 0;
+    // Create a QFile and open it for writing
+//    QFile outputFile(outputFilePath);
+//    if (outputFile.open(QIODevice::WriteOnly)) {
+//        // Write the contents of the QByteArray to the file
+//        outputFile.write(m_audioInputBuffer.buffer());
 
-    if(max == 0)
-    {
-        max = 32768;
-    }
+//        // Close the file
+//        outputFile.close();
+//    }
 
-    printf("Max: %f\n", max);
-    fflush(stdout);
-
-    while(!stream.atEnd()) {
-        qint16 value;
-        stream >> value;
-//        array.array[counter] = value/32768.0;
-        array.array[counter] = value/max;
-        counter++;
-    }
+    DynamicArray liveRecordedAudio = GetAudioFromBuffer();
 
     std::string qTranscriptionFile = m_transcriptionFile.toLocalFile().toStdString();
     const char* transcriptionFilename = qTranscriptionFile.c_str();
 
-
-//    qDebug() << "Dictionary dims: " << m_dictionary.shape[0] << ", " << m_dictionary.shape[1] << ", " << m_dictionary.shape[2];
-
     // print array
     for(int i = 0; i < 10; i++)
     {
-        printf("%f\n", array.array[i]);
+        printf("%f\n", liveRecordedAudio.array[i]);
     }
 
     fflush(stdout);
 
+    Matrix estimated_notes = transcribe_array(&liveRecordedAudio, transcriptionFilename, m_transcriptionIterations);
 
-//    Matrix estimated_notes = full_transcription_from_array(&array, transcriptionFilename, &m_dictionary);
-
-    Matrix estimated_notes = transcribe_array(&array, transcriptionFilename);
+    DestroyDynamicArray(&liveRecordedAudio);
 
     QVariantList list = notesToVariantList(estimated_notes);
 
     notesToMidiFile(estimated_notes, "transcription_output.mid");
     playMidiFile();
 
+    DestroyMatrix(&estimated_notes);
 
     m_notes = list;
     emit notesChanged(m_notes);
@@ -221,38 +192,20 @@ QVariantList Transcription::notesToVariantList(Matrix estimated_notes)
 
 void Transcription::recordedTranscription()
 {
-
-//    printf("Dictionary dims: %d, %d, %d\n", m_dictionary.shape[0], m_dictionary.shape[1], m_dictionary.shape[2]);
-//    fflush(stdout);
-
-
     std::string qSongName = m_songName.toLocalFile().toStdString();
     std::string qTranscriptionFile = m_transcriptionFile.toLocalFile().toStdString();
 
     const char* waveFilename = qSongName.c_str();
     const char* transcriptionFilename = qTranscriptionFile.c_str();
 
-//    qDebug() << waveFilename;
-//    qDebug() << transcriptionFilename;
-
-//    Dictionary tempdict = GetBestDictionaryForRecording(waveFilename);
-
-//    Dictionary tempdict = GetDictionary("AkPnBcht");
-
-//    tempdict = HardFilterSpectrograms(&tempdict, 1500);
-
-//    NormaliseDictionary(&tempdict);
-
-//    m_dictionary = tempdict;
-
-//    Matrix estimated_notes = full_transcription_from_wav(waveFilename, transcriptionFilename, &m_dictionary);
-
-    Matrix estimated_notes = transcribe_wav(waveFilename, transcriptionFilename);
+    Matrix estimated_notes = transcribe_wav(waveFilename, transcriptionFilename, m_transcriptionIterations);
 
     notesToMidiFile(estimated_notes, "transcription_output.mid");
     playMidiFile();
 
     QVariantList list = notesToVariantList(estimated_notes);
+
+    DestroyMatrix(&estimated_notes);
 
     m_notes = list;
     emit notesChanged(m_notes);
@@ -302,6 +255,74 @@ void Transcription::setAudioInputDevice(const QAudioDevice &audioDevice)
 {
     m_audioInputDevice = audioDevice;
     emit audioInputDeviceChanged(m_audioInputDevice);
+}
+
+int Transcription::transcriptionIterations() const
+{
+    return m_transcriptionIterations;
+}
+
+void Transcription::setTranscriptionIterations(const int &transcriptionIterations)
+{
+    m_transcriptionIterations = transcriptionIterations;
+    emit transcriptionIterationsChanged(m_transcriptionIterations);
+}
+
+DynamicArray Transcription::GetAudioFromBuffer()
+{
+    m_audioInputBuffer.seek(0);
+
+    QDataStream stream(&m_audioInputBuffer);
+
+    int counter = 0;
+
+    double max = 0;
+
+    while(!stream.atEnd()) {
+        qint16 value;
+        stream >> value;
+
+        if(value > max)
+        {
+            max = value;
+        }
+
+        counter++;
+    }
+
+    DynamicArray array = CreateDynamicArray(counter);
+
+    m_audioInputBuffer.seek(0);
+
+    counter = 0;
+
+    if(max == 0)
+    {
+        max = 32768;
+    }
+
+    printf("Max: %f\n", max);
+    fflush(stdout);
+
+//    while(!stream.atEnd()) {
+//        qint16 value;
+//        stream >> value;
+//        //        array.array[counter] = value/32768.0;
+//        array.array[counter] = value/max;
+//        counter++;
+//    }
+
+//    int counter2;
+
+    while(counter < array.size) {
+//        qint16 value;
+//        stream >> value;
+        //        array.array[counter] = value/32768.0;
+        array.array[counter] = (m_audioInputBuffer.buffer().data()[2*counter] * 16 + m_audioInputBuffer.buffer().data()[2*counter+1])/max;
+        counter++;
+    }
+
+    return array;
 }
 
 void Transcription::notesToMidiFile(Matrix estimated_notes, const char *midiFilename)

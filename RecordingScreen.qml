@@ -145,6 +145,8 @@ Rectangle {
         anchors.bottom: parent.bottom
     }
 
+    IterationSelector {}
+
     Rectangle {
         x: 300
         y: 300
