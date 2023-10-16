@@ -50,7 +50,6 @@ void LoadDictionary(Dictionary *dictionary, char *filename) {
     status = H5Dread(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, flattened_dictionary);
     if (status < 0) {
         fprintf(stderr, "Error reading the dataset.\n");
-        free(dictionary->data);
         H5Sclose(dataspace_id);
         H5Dclose(dataset_id);
         H5Fclose(file_id);
@@ -276,8 +275,3 @@ void DestroyDictionary(Dictionary *dictionary)
     }
 }
 
-//Dictionary CreateDictionary(hsize_t shape[])
-//{
-
-//    Dictionary
-//}
