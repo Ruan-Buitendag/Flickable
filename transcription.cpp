@@ -3,6 +3,7 @@
 extern "C" {
 #include "full_transcription.h"
 #include "domain_adaptation.h"
+#include "wav.h"
 }
 
 #include "midifile.h"
@@ -22,6 +23,7 @@ Transcription::Transcription(QObject *parent)
     format.setSampleRate(44100);
     format.setChannelCount(1);
     format.setSampleFormat(QAudioFormat::Int16);
+//    format.setSampleFormat(QAudioFormat::UInt8);
 
     m_audioInputDevice = QMediaDevices::defaultAudioInput();
 
@@ -40,6 +42,13 @@ Transcription::Transcription(QObject *parent)
     }
 
     m_audioOutputSink = new QAudioSink(m_audioOutputDevice, format);
+
+//    WavFile wav = ReadWav(m_songName.toLocalFile().toStdString().c_str());
+
+//    DynamicArray mono = StereoToMono(&wav, "average");
+    //    NormaliseChannel(&mono);
+
+
 
     m_transcriptionIterations = 10;
 
@@ -114,6 +123,24 @@ void Transcription::playRecording()
     pauseRecording();
     m_audioInputBuffer.seek(0);
 
+//    WavFile wav = ReadWav(m_songName.toLocalFile().toStdString().c_str());
+
+//    DynamicArray mono = StereoToMono(&wav, "average");
+//    //    NormaliseChannel(&mono);
+
+
+//    qint16 value;
+
+//    for(int i = 0; i < (int)mono.size; i++)
+//    {
+//        value = static_cast<qint16>(mono.array[i]*32767);
+
+//        m_audioInputBuffer.buffer().append(QByteArray::fromRawData(reinterpret_cast<const char *>(&value), sizeof(value)));
+
+//    }
+
+    m_audioInputBuffer.seek(0);
+
     qDebug() << "Playing recording on " << m_audioOutputDevice.description();
 
     m_audioOutputSink->start(&m_audioInputBuffer);
@@ -132,19 +159,7 @@ void Transcription::liveTranscription()
 {
     qDebug() << "Starting live transcription";
 
-//    QString outputFilePath = "output.raw";
-
     m_audioInputBuffer.seek(0);
-
-    // Create a QFile and open it for writing
-//    QFile outputFile(outputFilePath);
-//    if (outputFile.open(QIODevice::WriteOnly)) {
-//        // Write the contents of the QByteArray to the file
-//        outputFile.write(m_audioInputBuffer.buffer());
-
-//        // Close the file
-//        outputFile.close();
-//    }
 
     DynamicArray liveRecordedAudio = GetAudioFromBuffer();
 
@@ -272,55 +287,38 @@ DynamicArray Transcription::GetAudioFromBuffer()
 {
     m_audioInputBuffer.seek(0);
 
-    QDataStream stream(&m_audioInputBuffer);
-
-    int counter = 0;
+    QByteArray byteArray = m_audioInputBuffer.buffer();
+    const qint16* data = reinterpret_cast<const qint16*>(byteArray.constData());
+    int numValues = byteArray.size() / sizeof(qint16);
+    DynamicArray array = CreateDynamicArray(numValues);
 
     double max = 0;
 
-    while(!stream.atEnd()) {
-        qint16 value;
-        stream >> value;
+    for (int i = 0; i < numValues; i++) {
+        qint16 value = data[i];
+        array.array[i] = static_cast<double>(value) / 32767.0;
 
-        if(value > max)
+        if(array.array[i] > max)
         {
-            max = value;
+            max = array.array[i];
         }
-
-        counter++;
     }
 
-    DynamicArray array = CreateDynamicArray(counter);
+    // normalise array
 
-    m_audioInputBuffer.seek(0);
-
-    counter = 0;
-
-    if(max == 0)
-    {
-        max = 32768;
-    }
-
-    printf("Max: %f\n", max);
-    fflush(stdout);
-
-//    while(!stream.atEnd()) {
-//        qint16 value;
-//        stream >> value;
-//        //        array.array[counter] = value/32768.0;
-//        array.array[counter] = value/max;
-//        counter++;
+//    for (int i = 0; i < numValues; i++) {
+//        array.array[i] /= max;
 //    }
 
-//    int counter2;
+//    QByteArray byteArray = m_audioInputBuffer.buffer();
+//    const qint16* data = reinterpret_cast<const qint16*>(byteArray.constData());
+//    int numValues = byteArray.size() / sizeof(qint16);
+//    DynamicArray array = CreateDynamicArray(numValues);
 
-    while(counter < array.size) {
-//        qint16 value;
-//        stream >> value;
-        //        array.array[counter] = value/32768.0;
-        array.array[counter] = (m_audioInputBuffer.buffer().data()[2*counter] * 16 + m_audioInputBuffer.buffer().data()[2*counter+1])/max;
-        counter++;
-    }
+//    for (int i = 0; i < numValues; i++) {
+//        qint16 value = data[i];
+//        array.array[i] = static_cast<double>(value) / 32767.0;
+//    }
 
     return array;
 }
