@@ -15,6 +15,8 @@
 
 #include "time.h"
 
+//#include "cblas.h"
+
 //#include "mkl.h"
 //#include "mkl_cblas.h"
 
@@ -93,26 +95,36 @@ Matrix MatrixMultiply(const Matrix *a, const Matrix *b)
     Matrix result = CreateMatrix(rows, cols);
 
 
-    double* result_array = calloc(result.cols * result.rows, sizeof(double));
-    double* a_array = calloc(a->cols * a->rows, sizeof(double));
-    double* b_array = calloc(b->cols * b->rows, sizeof(double));
+//    double* result_array = calloc(result.cols * result.rows, sizeof(double));
+//    double* a_array = calloc(a->cols * a->rows, sizeof(double));
+//    double* b_array = calloc(b->cols * b->rows, sizeof(double));
 
 
-    for(int i = 0; i < a->rows; i++){
-        for(int j = 0; j < a->cols; j++){
-            a_array[i * a->cols + j] = a->array[i][j];
-        }
-    }
+//    for(int i = 0; i < a->rows; i++){
+//        for(int j = 0; j < a->cols; j++){
+//            a_array[i * a->cols + j] = a->array[i][j];
+//        }
+//    }
 
-    for(int i = 0; i < b->rows; i++){
-        for(int j = 0; j < b->cols; j++){
-            b_array[i * b->cols + j] = b->array[i][j];
-        }
-    }
+//    for(int i = 0; i < b->rows; i++){
+//        for(int j = 0; j < b->cols; j++){
+//            b_array[i * b->cols + j] = b->array[i][j];
+//        }
+//    }
 
-//    clock_t begin = clock();
+//    const CBLAS_LAYOUT layout = CblasRowMajor; // or CblasColMajor for column-major
+//    const CBLAS_TRANSPOSE TransA = CblasNoTrans; // or CblasTrans or CblasConjTrans
+//    const CBLAS_TRANSPOSE TransB = CblasNoTrans; // or CblasTrans or CblasConjTrans
+//    const double alpha = 1.0; // Scaling factor for A*B
+//    const double beta = 0.0; // Scaling factor for C
 
-#pragma omp parallel for collapse(2)
+
+//    cblas_dgemm(layout, TransA, TransB, a->rows, b->cols, a->cols, alpha, a_array, a->cols, b_array, b->cols, beta, result_array, a->rows);
+
+
+    clock_t begin = clock();
+
+#pragma omp parallel for collapse(2) schedule(dynamic, 1) shared(result, a, b)
     for (int i = 0; i < rows; i += block_size) {
         for (int k = 0; k < common_dim; k += block_size) {
             for (int j = 0; j < cols; j += block_size) {
@@ -127,10 +139,22 @@ Matrix MatrixMultiply(const Matrix *a, const Matrix *b)
                 }
             }
         }
-    }
+  }
 
-//    clock_t end = clock();
-//    double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+//    free(a_array);
+//    free(b_array);
+
+//    for(int i = 0; i < result.rows; i++){
+//        for(int j = 0; j < result.cols; j++){
+//            result.array[i][j] = result_array[i + j * result.cols];
+//        }
+//    }
+
+//    free(result_array);
+
+
+    clock_t end = clock();
+    double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
 
 //    printf("Time spent on matrix multiplication using matrices %lf", time_spent);
 

@@ -92,7 +92,7 @@ Matrix transcribe(Spectrogram* songSpectrogram, Dictionary *dictionary, int tran
 Matrix transcribe_array(DynamicArray *array, const char * transcriptionFile, int transcriptionIterations)
 {
 
-    double time_limit = 10;
+    double time_limit = 5;
 
     Spectrogram spec = STFT(array, 4096, 882, 8192, time_limit, 44100);
     Spectrogram filtered = HardFilterSpectrogram(&spec, 1500);

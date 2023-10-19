@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.16)
 
-enable_testing()
-
 project(Flickable VERSION 0.1 LANGUAGES C CXX)
+
+
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(CMAKE_CXX_FLAGS "-Wall -ffast-math -fopenmp")
-set(CMAKE_C_FLAGS "-Wall -ffast-math -fopenmp")
+set(CMAKE_CXX_FLAGS " -Wall -ffast-math -fopenmp ")
+set(CMAKE_C_FLAGS " -Wall -ffast-math -fopenmp ")
 
 
 find_package(Qt6 6.4 REQUIRED COMPONENTS Quick Concurrent Multimedia)
@@ -35,8 +35,6 @@ QML_FILES DebugBox.qml
 RESOURCES images/buttons/back/white.png images/buttons/go/white.png images/line.png
 QML_FILES AudioDeviceSelector.qml
 QML_FILES IterationSelector.qml
-
-
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
@@ -53,23 +51,15 @@ set_target_properties(appFlickable PROPERTIES
 find_package(HDF5 COMPONENTS C HL)
 include_directories(${HDF5_INCLUDE_DIRS} code/headers)
 
-
 find_package(OpenMP)
 
-#find_package(MKL CONFIG REQUIRED)
-#message(STATUS "${MKL_IMPORTED_TARGETS}") #Provides available list of targets based on input
+#include_directories(C:/Users/ruanb/Downloads/OpenBLAS-0.3.24-x64/include/ C:/Users/ruanb/Downloads/OpenBLAS-0.3.24-x64/lib/)
 
-#target_compile_options(appFlickable PUBLIC $<TARGET_PROPERTY:MKL::MKL,INTERFACE_COMPILE_OPTIONS>)
-#target_include_directories(appFlickable PUBLIC $<TARGET_PROPERTY:MKL::MKL,INTERFACE_INCLUDE_DIRECTORIES>)
 
 target_link_libraries(appFlickable
-    PRIVATE Qt6::Quick ${HDF5_LIBRARIES} PUBLIC OpenMP::OpenMP_CXX Qt6::Concurrent Qt6::Multimedia #$<LINK_ONLY:MKL::MKL>
+    PRIVATE Qt6::Quick ${HDF5_LIBRARIES} PUBLIC OpenMP::OpenMP_CXX Qt6::Concurrent Qt6::Multimedia #${BLAS_LIBRARIES}
 )
 
-add_test(NAME mytest COMMAND appFlickable)
-if(MKL_ENV)
-  set_tests_properties(mytest PROPERTIES ENVIRONMENT "${MKL_ENV}")
-endif()
 
 include(GNUInstallDirs)
 install(TARGETS appFlickable

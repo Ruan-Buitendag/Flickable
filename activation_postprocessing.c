@@ -142,6 +142,8 @@ double GetThreshold(const Matrix *activations) {
 
     double threshold = 9.8125 * variance + 0.0318;
 
+    threshold -= 0.01;
+
     printf("Threshold: %f\n", threshold);
 
     return threshold;

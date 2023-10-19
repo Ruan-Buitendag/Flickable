@@ -418,7 +418,7 @@ Dictionary GetBestDictionaryForArray(DynamicArray *array)
     //    const char *filename = "MAPS_MUS-alb_se3_AkPnBcht.wav";
 
     double time_limit = 10;
-    int iterations = 10;
+    int iterations = 5;
 
 
     Spectrogram spec = STFT(array, 4096, 882, 8192, time_limit, 44100);
