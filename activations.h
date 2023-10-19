@@ -9,6 +9,7 @@
 #include "dictionary.h"
 #include "matrix.h"
 #include "dynamicarray.h"
+#include "stdbool.h"
 
 double BetaDivergence(Matrix const *x, Matrix const *y, double beta);
 

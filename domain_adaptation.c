@@ -4,10 +4,8 @@
 
 #include "activations.h"
 
-//#include "windows.h"
 #include "dirent.h"
 
-//#include "wav.h"
 #include "stft.h"
 
 void LoadSingleNoteDictionary(Dictionary* single_note_dictionary, char **piano_W, int numPianos, int midi_note, char* single_template_dir)
@@ -75,68 +73,48 @@ void LoadSingleNoteDictionary(Dictionary* single_note_dictionary, char **piano_W
                         sprintf(filepath, "%s%s", single_template_dir, filename);
 
 
-                        hid_t file_id;
-                        hid_t dataset_id;
-                        hid_t dataspace_id;
-                        herr_t status;
-                        hsize_t dims[2];
+                        int dims[3];
 
-                        printf("Opening file: %s\n", filename);
-                        fflush(stdout);
+                        FILE *file = fopen(filepath, "r");
 
-                        // Open the HDF5 file
-                        file_id = H5Fopen(filepath, H5F_ACC_RDONLY, H5P_DEFAULT);
-                        if (file_id < 0) {
-                            fprintf(stderr, "Error opening the file.\n");
+                        if (file == NULL) {
+                            perror("Error opening file");
+
+                            printf(filepath);
+                            fflush(stdout);
+
                             exit(1);
                         }
 
-                        // Open the dataset
-                        dataset_id = H5Dopen2(file_id, "dictionary", H5P_DEFAULT);
-                        if (dataset_id < 0) {
-                            fprintf(stderr, "Error opening the dataset.\n");
-                            H5Fclose(file_id);
-                            exit(1);
+                        //    int T;
+                        //    int bins;
+                        //    int notes;
+
+                        double value;
+                        int shape;
+
+                        //    int index = 0;
+
+                        for(int i = 0; i < 3; i++){
+                            fscanf(file, "%d", &shape);
+                            int ss = shape;
+                            single_note_dictionary->shape[i] = ss;
+                            printf("dict shape: %d\n", ss);
                         }
 
-                        // Get the dataspace
-                        dataspace_id = H5Dget_space(dataset_id);
-                        if (dataspace_id < 0) {
-                            fprintf(stderr, "Error getting the dataspace.\n");
-                            H5Dclose(dataset_id);
-                            H5Fclose(file_id);
-                            exit(1);
-                        }
+                        AllocateDictionaryMemory(single_note_dictionary);
 
-                        // Get the dimensions of the dataset
-                        H5Sget_simple_extent_dims(dataspace_id, dims, NULL);
-
-                        double *flattened_dictionary = (double *) calloc(dims[0] * dims[1] , sizeof(double));
-
-                        printf("%d %d\n", dims[0], dims[1]);
-                        fflush(stdout);
-
-                        status = H5Dread(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, flattened_dictionary);
-
-                        if (status < 0) {
-                            fprintf(stderr, "Error reading the dataset.\n");
-                            H5Sclose(dataspace_id);
-                            H5Dclose(dataset_id);
-                            H5Fclose(file_id);
-                            exit(1);
-                        }
-
-                        H5Sclose(dataspace_id);
-                        H5Dclose(dataset_id);
-                        H5Fclose(file_id);
-
-                        for(int row = 0; row < dims[0]; row++){
-                            for(int col = 0; col < dims[1]; col++){
-                                single_note_dictionary->data[row][col][num_templates] = flattened_dictionary[row * dims[1] + col];
+                        for(int i = 0; i < single_note_dictionary->shape[0]; i++){
+                            for(int j = 0; j < single_note_dictionary->shape[1]; j++){
+                                for(int k = 0; k < single_note_dictionary->shape[2]; k++){
+                                    fscanf(file, "%lf", &value);
+                                    //                printf("%lf\n", value);
+                                    single_note_dictionary->data[i][j][k] = value;
+                                }
                             }
                         }
 
-                        free(flattened_dictionary);
+                        fclose(file);
                     }
                 }
             }
@@ -236,7 +214,7 @@ onset_detected: ;
     char *piano_W[8] = {"AkPnBcht", "AkPnBsdf", "AkPnCGdD", "AkPnStgb", "ENSTDkCl", "ENSTDkAm", "SptkBGAm", "StbgTGd2"};
 
 
-    char single_template_dir[256] = "C:/Users/ruanb/OneDrive/Desktop/Piano Transcripton/Piano Transcription (C)/data_persisted/single_notes/";
+    char single_template_dir[256] = "C:/Users/ruanb/OneDrive/Desktop/Piano Transcripton/Piano Transcription (C)/data_persisted/single_notes/csv/";
 
 
     Dictionary single_note_dictionary;
@@ -369,47 +347,6 @@ Dictionary AdaptDictionary(Dictionary* dictionaries, DynamicArray* weights){
     return adapted_dictionary;
 }
 
-//Dictionary GetBestDictionaryForRecording(const char *filename)
-//{
-//    const char* piano_W[] = {"AkPnBcht", "AkPnBsdf", "AkPnCGdD", "AkPnStgb", "ENSTDkCl", "ENSTDkAm", "SptkBGAm", "StbgTGd2"};
-
-//    //    const char *filename = "MAPS_MUS-alb_se3_AkPnBcht.wav";
-
-//    double time_limit = 10;
-//    int iterations = 10;
-
-//    WavFile wav = ReadWav(filename);
-
-
-//    DynamicArray mono = StereoToMono(&wav, "average");
-
-//    Spectrogram spec = STFT(&mono, 4096, 882, 8192, time_limit, 44100);
-//    spec =  HardFilterSpectrogram(&spec, 2000);
-
-//    Dictionary dictionaries[5];
-
-//    for(int i = 0; i < 5; i++){
-//        dictionaries[i] = GetDictionary(piano_W[i]);
-//    }
-
-//    DynamicArray weights = CalculateTemplateWeights(&spec, iterations);
-
-//    printf("Template weight calc done\n");
-
-//    Dictionary adapted_dictionary = AdaptDictionary( dictionaries, &weights);
-
-//    printf("Adapted dimensions: %d %d %d\n", adapted_dictionary.shape[0], adapted_dictionary.shape[1], adapted_dictionary.shape[2]);
-//    fflush(stdout);
-
-//    DestroyDynamicArray(&mono);
-//    DestroySpectrogram(&spec);
-
-//    for(int i = 0; i < 5; i++){
-//        DestroyDictionary(&dictionaries[i]);
-//    }
-
-//    return adapted_dictionary;
-//}
 
 Dictionary GetBestDictionaryForArray(DynamicArray *array)
 {

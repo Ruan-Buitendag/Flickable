@@ -4,77 +4,51 @@
 
 #include "dictionary.h"
 
+
 void LoadDictionary(Dictionary *dictionary, char *filename) {
-    hid_t file_id;
-    hid_t dataset_id;
-    hid_t dataspace_id;
-    herr_t status;
-    hsize_t dims[3];
+    printf("in LoadDictionary\n");
+    fflush(stdout);
 
-    printf("Opening file: %s\n", filename);
+    int dims[3];
 
-    // Open the HDF5 file
-    file_id = H5Fopen(filename, H5F_ACC_RDONLY, H5P_DEFAULT);
-    if (file_id < 0) {
-        fprintf(stderr, "Error opening the file.\n");
+    FILE *file = fopen(filename, "r");
+
+    if (file == NULL) {
+        perror("Error opening file");
+
+        printf(filename);
+        fflush(stdout);
+
         exit(1);
     }
 
-    // Open the dataset
-    dataset_id = H5Dopen2(file_id, "dictionary", H5P_DEFAULT);
-    if (dataset_id < 0) {
-        fprintf(stderr, "Error opening the dataset.\n");
-        H5Fclose(file_id);
-        exit(1);
+
+    double value;
+    int shape;
+
+
+    for(int i = 0; i < 3; i++){
+        fscanf(file, "%d", &shape);
+        int ss = shape;
+        dictionary->shape[i] = ss;
+            printf("dict shape: %d\n", ss);
     }
-
-    // Get the dataspace
-    dataspace_id = H5Dget_space(dataset_id);
-    if (dataspace_id < 0) {
-        fprintf(stderr, "Error getting the dataspace.\n");
-        H5Dclose(dataset_id);
-        H5Fclose(file_id);
-        exit(1);
-    }
-
-    // Get the dimensions of the dataset
-    H5Sget_simple_extent_dims(dataspace_id, dims, NULL);
-
-    for (int dim = 0; dim < 3; dim++) {
-        dictionary->shape[dim] = dims[dim];
-    }
-
-    double *flattened_dictionary = (double *) malloc(
-            dictionary->shape[0] * dictionary->shape[1] * dictionary->shape[2] * sizeof(double));
-
-    status = H5Dread(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, flattened_dictionary);
-    if (status < 0) {
-        fprintf(stderr, "Error reading the dataset.\n");
-        H5Sclose(dataspace_id);
-        H5Dclose(dataset_id);
-        H5Fclose(file_id);
-        exit(1);
-    }
-
-    H5Sclose(dataspace_id);
-    H5Dclose(dataset_id);
-    H5Fclose(file_id);
 
     AllocateDictionaryMemory(dictionary);
 
-    int currentPos = 0;
-
-    for (int i = 0; i < dictionary->shape[0]; i++) {
-        for (int j = 0; j < dictionary->shape[1]; j++) {
-            for (int k = 0; k < dictionary->shape[2]; k++) {
-                dictionary->data[i][j][k] = flattened_dictionary[currentPos];
-                currentPos++;
+    for(int i = 0; i < dictionary->shape[0]; i++){
+        for(int j = 0; j < dictionary->shape[1]; j++){
+            for(int k = 0; k < dictionary->shape[2]; k++){
+                fscanf(file, "%lf", &value);
+                dictionary->data[i][j][k] = value;
             }
         }
     }
 
-    free(flattened_dictionary);
+    fclose(file);
 }
+
+
 
 void AllocateDictionaryMemory(Dictionary *dictionary) {
     dictionary->data = (double ***) malloc(dictionary->shape[0] * sizeof(double **));
@@ -99,23 +73,23 @@ void PrintDictionary(Dictionary *dictionary) {
 }
 
 void dictionaryTest() {
-    const char *dictionary_directory = "C:\\Users\\ruanb\\OneDrive\\Desktop\\Piano Transcripton\\Piano Transcription (C)\\data_persisted\\dictionaries\\";
-    const char *piano_W[3] = {"AkPnBsdf", "AkPnStgb", "AkPnBcht"};
+//    const char *dictionary_directory = "C:\\Users\\ruanb\\OneDrive\\Desktop\\Piano Transcripton\\Piano Transcription (C)\\data_persisted\\dictionaries\\";
+//    const char *piano_W[3] = {"AkPnBsdf", "AkPnStgb", "AkPnBcht"};
 
-    Dictionary dictionaries[3];
+//    Dictionary dictionaries[3];
 
-    // Iterate through piano_W
-    for (int i = 0; i < 3; i++) {
-        char W_persisted_name[256]; // Adjust the size as needed
+//    // Iterate through piano_W
+//    for (int i = 0; i < 3; i++) {
+//        char W_persisted_name[256]; // Adjust the size as needed
 
         // Create the formatted string
-        snprintf(W_persisted_name, sizeof(W_persisted_name),
-                 "%sconv_dict_piano_%s.h5",
-                 dictionary_directory,
-                 piano_W[i]);
+//        snprintf(W_persisted_name, sizeof(W_persisted_name),
+//                 "%sconv_dict_piano_%s.h5",
+//                 dictionary_directory,
+//                 piano_W[i]);
 
-        LoadDictionary(&dictionaries[i], W_persisted_name);
-    }
+//        LoadDictionary(&dictionaries[i], W_persisted_name);
+//    }
 
 //    Spectrogram aa = GetSpectrogramFromDictionary(&dictionaries[0], 0);
 
@@ -238,9 +212,9 @@ Dictionary GetDictionary(const char *piano_name) {
     // Iterate through piano_W
     char W_persisted_name[256]; // Adjust the size as needed
 
-    // Create the formatted string
+
     snprintf(W_persisted_name, sizeof(W_persisted_name),
-             "%sconv_dict_piano_%s.h5",
+             "%sconv_dict_piano_%s.csv",
              "C:\\Users\\ruanb\\OneDrive\\Desktop\\Piano Transcripton\\Piano Transcription (C)\\data_persisted\\dictionaries\\",
              piano_name);
 

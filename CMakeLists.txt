@@ -48,16 +48,11 @@ set_target_properties(appFlickable PROPERTIES
     WIN32_EXECUTABLE TRUE
 )
 
-find_package(HDF5 COMPONENTS C HL)
-include_directories(${HDF5_INCLUDE_DIRS} code/headers)
-
 find_package(OpenMP)
-
-#include_directories(C:/Users/ruanb/Downloads/OpenBLAS-0.3.24-x64/include/ C:/Users/ruanb/Downloads/OpenBLAS-0.3.24-x64/lib/)
 
 
 target_link_libraries(appFlickable
-    PRIVATE Qt6::Quick ${HDF5_LIBRARIES} PUBLIC OpenMP::OpenMP_CXX Qt6::Concurrent Qt6::Multimedia #${BLAS_LIBRARIES}
+    PRIVATE Qt6::Quick PUBLIC OpenMP::OpenMP_CXX Qt6::Concurrent Qt6::Multimedia #${BLAS_LIBRARIES}
 )
 
 

@@ -7,15 +7,15 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "hdf5.h"
+//#include "hdf5.h"
 #include "spectrogram.h"
 
 typedef struct DictionaryStruct {
-    hsize_t shape[3];
+    int shape[3];
     double*** data;
 } Dictionary;
 
-Dictionary CreateDictionary(hsize_t shape[3]);
+Dictionary CreateDictionary(int shape[3]);
 
 void LoadDictionary(Dictionary *dictionary, char *filename);
 void AllocateDictionaryMemory(Dictionary* dictionary);
